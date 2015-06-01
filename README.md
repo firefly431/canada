@@ -24,6 +24,5 @@ Dependencies
 TODO
 ----
 
-* Make the `*` operator not require parentheses
 * Array literals
 
