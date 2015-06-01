@@ -19,3 +19,9 @@ Dependencies
 * PLY (Python Lex/Yacc)
 * NASM (for assembly)
 
+TODO
+----
+
+* Make the `*` operator not require parentheses
+* Array literals
+
