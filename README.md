@@ -4,6 +4,8 @@ Canada Compiler
 Canada is a C-like language I made for fun to practice writing a compiler.
 
 A sample program can be found in the file [program.samp](program.samp).
+The abstract syntax tree for the file looks like:  
+![Abstract syntax tree for program.samp](program.dot.png)
 
 Status
 ------
