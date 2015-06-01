@@ -1,0 +1,6 @@
+syscalls = {
+    '$open': 5,
+    '$close': 6,
+    '$read': 3,
+    '$write': 4,
+}
