@@ -4,5 +4,3 @@ __pycache__
 *.pyc
 parsetab.py
 parser.out
-*.dot
-*.dot.png
