@@ -15,6 +15,7 @@ precedence = (
     ('left', 'SHIFT'),
     ('left', '+', '-'),
     ('left', '*', '/', '~', '\\', '%', '@'),
+    ('right', 'uderef'),
 )
 
 # return ('program', [global_decl...])
@@ -292,10 +293,10 @@ def p_lvalue(p):
 # returns ('deref', ['*' or '~', *expr])
 def p_deref(p):
     '''
-    deref : '*' '(' expr ')'
-          | '~' '(' expr ')'
+    deref : '*' expr %prec uderef
+          | '~' expr %prec uderef
     '''
-    p[0] = (p.slice[0].type, [p[1], p[3]])
+    p[0] = (p.slice[0].type, [p[1], p[2]])
 
 # returns ('address', [*simple_lvalue])
 def p_address(p):
@@ -321,6 +322,9 @@ def p_error(p):
 
 if __name__ == '__main__':
     import fileinput
+    import sys
+    sys.stdout = open('out.dot', 'w')
+    sys.stderr = open('err.txt', 'w')
     lexer = ply.lex.lex(module=canadalex)
     parser = ply.yacc.yacc()
     code = ''.join(fileinput.input())
