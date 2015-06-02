@@ -24,5 +24,5 @@ Dependencies
 TODO
 ----
 
-* Array literals
+Parser all done!
 

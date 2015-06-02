@@ -15,7 +15,6 @@ precedence = (
     ('left', 'SHIFT'),
     ('left', '+', '-'),
     ('left', '*', '/', '~', '\\', '%', '@'),
-    ('right', 'uderef'),
 )
 
 # return ('program', [global_decl...])
@@ -37,10 +36,11 @@ def p_global_decl(p):
     '''
     p[0] = p[1]
 
-# return ('global_var', [var_type, IDENT, *literal])
+# return ('global_var', [var_type, IDENT, *literal or array_lit])
 def p_global_var(p):
     '''
     global_var : var_decl EQ literal ';'
+               | var_decl EQ array_lit ';'
     '''
     p[0] = (p.slice[0].type, p[1][1] + [p[3]])
 
@@ -70,6 +70,25 @@ def p_literal(p):
             | STRING_LIT
     '''
     p[0] = (p.slice[1].type, [p[1]])
+
+# forwards with name 'array_lit'
+def p_array_lit(p):
+    '''
+    array_lit : '{' array_list '}'
+    '''
+    p[0] = (p.slice[0].type, p[2][1])
+
+# returns ('array_list', [*literal...])
+def p_array_list(p):
+    '''
+    array_list : array_list ',' literal
+               | literal
+               |
+    '''
+    if len(p) <= 2:
+        p[0] = (p.slice[0].type, p[1:])
+    else:
+        p[0] = (p.slice[0].type, p[1][1] + [p[3]])
 
 # return ('function', [('VOID', [VOID]) or var_type, IDENT, par_list, statement])
 def p_function(p):
@@ -116,7 +135,7 @@ def p_statement(p):
     '''
     p[0] = p[1]
 
-# forwards
+# forwards or returns None
 def p_simple_stmt(p):
     '''
     simple_stmt : if_stmt
@@ -125,26 +144,19 @@ def p_simple_stmt(p):
                 | continue_stmt
                 | return_stmt
                 | expr_stmt
+                | ';'
     '''
-    p[0] = p[1]
+    if p.slice[0].type == ';': p[0] = None
+    else:
+        p[0] = p[1]
 
 # returns ('if_stmt', [*expr, *statement, else_clause])
 def p_if_stmt(p):
     '''
-    if_stmt : IF condition statement else_clause
+    if_stmt : IF condition statement
+            | IF condition statement ELSE statement
     '''
-    p[0] = (p.slice[0].type, p[2:])
-
-# forwards or returns None
-def p_else_clause(p):
-    '''
-    else_clause : ELSE statement
-                |
-    '''
-    if len(p) == 3:
-        return p[2]
-    else:
-        return None
+    p[0] = (p.slice[0].type, p[2:4] + p[5:])
 
 # returns ('while_loop', [*expr, *statement])
 def p_while_loop(p):
@@ -293,10 +305,10 @@ def p_lvalue(p):
 # returns ('deref', ['*' or '~', *expr])
 def p_deref(p):
     '''
-    deref : '*' expr %prec uderef
-          | '~' expr %prec uderef
+    deref : '*' '(' expr ')'
+          | '~' '(' expr ')'
     '''
-    p[0] = (p.slice[0].type, [p[1], p[2]])
+    p[0] = (p.slice[0].type, [p[1], p[3]])
 
 # returns ('address', [*simple_lvalue])
 def p_address(p):
@@ -323,14 +335,15 @@ def p_error(p):
 if __name__ == '__main__':
     import fileinput
     import sys
-    sys.stdout = open('out.dot', 'w')
-    sys.stderr = open('err.txt', 'w')
+    import os
     lexer = ply.lex.lex(module=canadalex)
     parser = ply.yacc.yacc()
     code = ''.join(fileinput.input())
     result = parser.parse(code, lexer=lexer)
     # print(result)
     # print graphviz
+    # lazy, so redirect stdout
+    sys.stdout = open((os.path.splitext(sys.argv[1])[0] if len(sys.argv) >= 2 else 'out') + '.dot', 'w')
     print("digraph parse_tree {")
     print("    node [shape = box];")
     node_c = 0
@@ -340,7 +353,7 @@ if __name__ == '__main__':
         return "node" + str(node_c)
     def walk(n, i):
         if not isinstance(n, tuple):
-            print("    " + i + " [label = \"" + str(n) + "\", shape = \"diamond\"]")
+            print("    " + i + " [label = \"" + str(n).replace('\\', '\\\\') + "\", shape = \"diamond\"]")
             return
         print("    " + i + " [label = \"" + n[0] + "\"]")
         nodes = list(map(node, n[1]))

@@ -1,0 +1,31 @@
+// this is just testing the parser
+
+int[5] test_array = {1, 2, 3, 4, '5'};
+
+int my_func(char a, int b) {
+    while (a < 5) {
+        a = b = a + 1;
+        if (a < 3 & a <= 8)
+            continue;
+        else
+            break;
+        int c;
+        c = a \ b;
+    }
+    return a;
+}
+
+void square(int addr) {
+    *(addr) = *(addr) * *(addr);
+    return;
+}
+
+void main() {
+    int a;
+    a = 8;
+    square(&a);
+    square(&test_array[3]);
+    if (1)
+        if (1);
+        else;
+}
