@@ -332,14 +332,18 @@ def p_error(p):
     else:
         print("Syntax error at EOF")
 
+lexer = canadalex.lexer;
+parser = ply.yacc.yacc();
+
+def parse(code):
+    return parser.parse(code, lexer=lexer)
+
 if __name__ == '__main__':
     import fileinput
     import sys
     import os
-    lexer = ply.lex.lex(module=canadalex)
-    parser = ply.yacc.yacc()
     code = ''.join(fileinput.input())
-    result = parser.parse(code, lexer=lexer)
+    result = parse(code)
     # print(result)
     # print graphviz
     # lazy, so redirect stdout
