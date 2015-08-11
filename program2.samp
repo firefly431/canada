@@ -1,6 +1,14 @@
 // this is just testing the parser
 
 int[5] test_array = {1, 2, 3, 4, '5'};
+int[2] useless = {
+    "HELLO, WORLD!\n",
+    "\r\n\t \\\\\\"
+};
+char[3] str = "abc";
+int foo = 8;
+char[] a = "foobar";
+int[] b = {1};
 
 int my_func(char a, int b) {
     while (a < 5) {

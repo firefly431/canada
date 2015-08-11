@@ -1,6 +1,8 @@
 import ply.lex
 import ply.yacc
 
+import sys
+
 import canadalex
 from canadalex import tokens
 
@@ -17,16 +19,268 @@ precedence = (
     ('left', '*', '/', '~', '\\', '%', '@'),
 )
 
-# return ('program', [global_decl...])
+shownwarning = False
+
+class FakeTuple:
+    def __init__(self, elements):
+        if isinstance(elements, FakeTuple):
+            elements = elements._tuple_elements
+        self._tuple_elements = elements
+    def __getitem__(self, key):
+        global shownwarning
+        if not shownwarning:
+            shownwarning = True
+            sys.stderr.write("*** tuple accessed: " + str(self._tuple_elements) +
+                  " [" + str(key) + "]\n")
+            import traceback
+            traceback.print_stack()
+        return self._tuple_elements.__getitem__(key)
+    def __repr__(self):
+        return type(self).__name__ + ': ' + str(self._tuple_elements)
+
+class Program(FakeTuple):
+    def __init__(self):
+        self.decls = []
+        FakeTuple.__init__(self, ('program', self.decls))
+    def append(self, decl):
+        self.decls.append(decl)
+        return self
+    def repr(self):
+        return '\n'.join(map(repr, self.decls))
+
+class GlobalDeclaration(FakeTuple): pass
+
+class GlobalVariable(GlobalDeclaration):
+    def __init__(self, decl, value):
+        """
+        :type decl: VariableDeclaration
+        :type value: Literal or ArrayLiteral
+        """
+        self.var_type = decl.type
+        self.name = decl.name
+        self.value = value
+        FakeTuple.__init__(self, ('global_var',
+                           [self.var_type, self.name, value]))
+    def __repr__(self):
+        return repr(self.var_type) + ' ' + self.name + ' = ' + repr(self.value)
+
+class VariableType(FakeTuple): pass
+
+class PrimitiveType(VariableType):
+    def __init__(self, type):
+        ":type type: str"
+        self.type = type
+        FakeTuple.__init__(self, ('PRIM_TYPE', [type]))
+    def __repr__(self):
+        return self.type
+
+class Void():
+    def __init__(self):
+        FakeTuple.__init__(self, ('VOID', ['void']))
+    def __repr__(self):
+        return 'void'
+
+class ArrayDeclaration(VariableType):
+    def __init__(self, prim_type, length):
+        """
+        :type prim_type: str
+        :type length: int
+        """
+        self.prim_type = prim_type
+        self.length = length
+        FakeTuple.__init__(self, ('array_decl',
+                                 [prim_type, length]))
+    def __repr__(self):
+        return self.prim_type + '[' + str(self.length) + ']'
+
+class ArrayLiteral(FakeTuple):
+    def __init__(self, elements):
+        """
+        :type elements: list
+        """
+        self.elements = elements
+        FakeTuple.__init__(self, ('array_lit', self.elements))
+    def __repr__(self):
+        return '{' + ', '.join(map(repr, self.elements)) + '}'
+
+class Function(FakeTuple):
+    def __init__(self, name_or_vardecl, header_and_body):
+        """
+        :type name_or_vardecl: str or VariableDeclaration
+        :type header_and_body: tuple
+        """
+        if isinstance(name_or_vardecl, VariableDeclaration):
+            self.type = name_or_vardecl.type
+            self.name = name_or_vardecl.name
+        else:
+            self.type = Void()
+            self.name = name_or_vardecl
+        self.par_list, self.statement = header_and_body
+        FakeTuple.__init__(self, ('function', [self.type, self.name, ('par_list', self.par_list), self.statement]))
+    def __repr__(self):
+        return repr(self.type) + ' ' + self.name + '(' + ','.join(map(repr, self.par_list)) + ') ' + repr(self.statement)
+
+class BlockStatement(FakeTuple): pass
+class Statement(BlockStatement): pass
+class BreakStatement(Statement):
+    def __init__(self):
+        FakeTuple.__init__(self, ('break_stmt', []))
+    def __repr__(self):
+        return 'break;'
+class ContinueStatement(Statement):
+    def __init__(self):
+        FakeTuple.__init__(self, ('continue_stmt', []))
+    def __repr__(self):
+        return 'continue;'
+class ReturnStatement(Statement):
+    def __init__(self, expr = None, array = False):
+        """
+        :type expr: Expression
+        :type array: bool
+        """
+        FakeTuple.__init__(self, ('return' + ('_arr' if array else ''), [expr] if expr else []))
+    def __repr__(self):
+        if not self.expr: return 'return;'
+        return 'return' + ('[]' if self.array else '') + ' ' + repr(self.expr)
+
+class VariableDeclaration(BlockStatement):
+    def __init__(self, type, name):
+        """
+        :type type: VariableType
+        :type name: str
+        """
+        self.type = type
+        self.name = name
+        FakeTuple.__init__(self, ('var_decl', [type, name]))
+    def __repr__(self):
+        return repr(self.type) + ' ' + self.name
+
+def _indent(s):
+    return '    ' + repr(s)
+
+class Block(Statement):
+    def __init__(self, statements):
+        """
+        :type statements: list
+        """
+        self.statements = statements
+        FakeTuple.__init__(self, ('block', statements))
+    def __repr__(self):
+        return '{\n' + '\n'.join(map(_indent, self.statements)) + '\n}'
+
+class Expression(FakeTuple): pass
+class ExpressionStatement(Statement):
+    def __init__(self, expr):
+        """
+        :type expr: Expression
+        """
+        self.expr = expr
+        FakeTuple.__init__(self, expr)
+    def __repr__(self):
+        return repr(self.expr) + ';'
+
+class Literal(Expression):
+    def __init__(self, type, value):
+        """
+        :type type: str
+        :type value: str or int
+        """
+        self.type = type
+        self.value = value
+        FakeTuple.__init__(self, (type, [value]))
+    def __repr__(self):
+        if self.type == 'INT_LIT':
+            return str(self.value)
+        elif self.type == 'CHAR_LIT':
+            return "'" + self.value + "'"
+        else:
+            return '"' + self.value + '"'
+
+class BinaryExpression(Expression):
+    def __init__(self, op, lhs, rhs):
+        """
+        :type op: str
+        :type lhs: Expression or LValue
+        :type rhs: Expression
+        """
+        self.op = op
+        self.lhs = lhs
+        self.rhs = rhs
+        FakeTuple.__init__(self, ('bin_expr', [op, lhs, rhs]))
+    def __repr__(self):
+        return '(' + repr(self.lhs) + ') ' + self.op + ' (' + repr(self.rhs) + ')'
+
+class FunctionCall(Expression):
+    def __init__(self, name, args):
+        """
+        :type name: str
+        :type args: list
+        """
+        self.name = name
+        self.args = args
+        FakeTuple.__init__(self, ('function_call', [name, ('arg_list', args)]))
+    def __repr__(self):
+        return self.name + '(' + ', '.join(map(repr, self.args)) + ')'
+
+class LValue(Expression): pass
+class SimpleLValue(LValue): pass
+
+class Identifier(SimpleLValue):
+    def __init__(self, name):
+        """
+        :type name: str
+        """
+        self.name = name
+        FakeTuple.__init__(self, None)
+    def __str__(self):
+        return self.name
+    def __repr__(self):
+        return self.name
+
+class Dereference(LValue):
+    def __init__(self, expr, char = False):
+        """
+        :type expr: Expression
+        :type char: bool
+        """
+        self.expr = expr
+        self.char = char
+        FakeTuple.__init__(self, ('deref', ['~' if char else '*', expr]))
+    def __repr__(self):
+        return self.char + '(' + repr(self.expr) + ')'
+
+class Address(Expression):
+    def __init__(self, lvalue):
+        """
+        :type lvalue: SimpleLValue
+        """
+        self.lvalue = lvalue
+        FakeTuple.__init__(self, ('address', [lvalue]))
+    def __repr__(self):
+        return '&' + repr(self.lvalue)
+
+class ArrayAccess(SimpleLValue):
+    def __init__(self, array, index):
+        """
+        :type array: str
+        :type index: Expression
+        """
+        self.array = array
+        self.index = index
+        FakeTuple.__init__(self, ('array_acc', [array, index]))
+    def __repr__(self):
+        return self.array + '[' + repr(self.index) + ']'
+
+# return ('program', [*global_decl...])
 def p_program(p):
     '''
     program : program global_decl
             |
     '''
     if len(p) == 1:
-        p[0] = (p.slice[0].type, [])
+        p[0] = Program()
     else:
-        p[0] = (p.slice[0].type, p[1][1] + p[2:])
+        p[0] = p[1].append(p[2])
 
 # forwards
 def p_global_decl(p):
@@ -42,25 +296,26 @@ def p_global_var(p):
     global_var : var_decl EQ literal ';'
                | var_decl EQ array_lit ';'
     '''
-    p[0] = (p.slice[0].type, p[1][1] + [p[3]])
+    p[0] = GlobalVariable(p[1], p[3])
 
-# return ('var_type', [array_decl or ('PRIM_TYPE', [PRIM_TYPE])])
+# forwards array_decl or wraps PRIM_TYPE
 def p_var_type(p):
     '''
     var_type : array_decl
              | PRIM_TYPE
     '''
     if p.slice[1].type == 'PRIM_TYPE':
-        p[0] = (p.slice[0].type, [('PRIM_TYPE', [p[1]])])
+        p[0] = PrimitiveType(p[1])
     else:
-        p[0] = (p.slice[0].type, p[1:])
+        p[0] = p[1]
 
 # return ('array_decl', [PRIM_TYPE, INT_LIT])
 def p_array_decl(p):
     '''
     array_decl : PRIM_TYPE '[' INT_LIT ']'
+               | PRIM_TYPE '[' ']'
     '''
-    p[0] = (p.slice[0].type, [p[1], p[3]])
+    p[0] = ArrayDeclaration(p[1], p[3] if len(p) >= 5 else None)
 
 # returns ('INT_LIT' or 'CHAR_LIT' or 'STRING_LIT', INT_LIT or CHAR_LIT or STRING_LIT)
 def p_literal(p):
@@ -69,16 +324,17 @@ def p_literal(p):
             | CHAR_LIT
             | STRING_LIT
     '''
-    p[0] = (p.slice[1].type, [p[1]])
+    p[0] = Literal(p.slice[1].type, p[1])
 
-# forwards with name 'array_lit'
+# forwards
 def p_array_lit(p):
     '''
     array_lit : '{' array_list '}'
     '''
-    p[0] = (p.slice[0].type, p[2][1])
+    p[0] = ArrayLiteral(p[2])
 
-# returns ('array_list', [*literal...])
+# return [*literal...]
+# returns ('array_lit', [*literal...])
 def p_array_list(p):
     '''
     array_list : array_list ',' literal
@@ -86,9 +342,9 @@ def p_array_list(p):
                |
     '''
     if len(p) <= 2:
-        p[0] = (p.slice[0].type, p[1:])
+        p[0] = p[1:]
     else:
-        p[0] = (p.slice[0].type, p[1][1] + [p[3]])
+        p[0] = p[1] + [p[3]]
 
 # return ('function', [('VOID', [VOID]) or var_type, IDENT, par_list, statement])
 def p_function(p):
@@ -96,19 +352,16 @@ def p_function(p):
     function : var_decl function_header_body
              | VOID IDENT function_header_body
     '''
-    if len(p) == 3:
-        p[0] = (p.slice[0].type, p[1][1] + p[2][1])
-    else:
-        p[0] = (p.slice[0].type, [('VOID', [p[1]]), p[2]] + p[3][1])
+    p[0] = Function(p[len(p) - 2], p[len(p) - 1])
 
-# return ('function_header_body', [par_list, statement])
+# return (par_list, statement)
 def p_function_header_body(p):
     '''
     function_header_body : '(' par_list ')' statement
     '''
-    p[0] = (p.slice[0].type, [p[2], p[4]])
+    p[0] = (p[2], p[4])
 
-# return ('par_list', [var_decl...])
+# return [var_decl...]
 def p_par_list(p):
     '''
     par_list : par_list ',' var_decl
@@ -116,16 +369,16 @@ def p_par_list(p):
              |
     '''
     if len(p) <= 2:
-        p[0] = (p.slice[0].type, p[1:])
+        p[0] = p[1:]
     else:
-        p[0] = (p.slice[0].type, p[1][1] + p[3:])
+        p[0] = p[1] + p[3:]
 
 # return ('var_decl', [var_type, IDENT])
 def p_var_decl(p):
     '''
     var_decl : var_type IDENT
     '''
-    p[0] = (p.slice[0].type, p[1:])
+    p[0] = VariableDeclaration(p[1], p[2])
 
 # forwards
 def p_statement(p):
@@ -177,47 +430,54 @@ def p_break_stmt(p):
     '''
     break_stmt : BREAK ';'
     '''
-    p[0] = (p.slice[0].type, [])
+    p[0] = BreakStatement()
 
 # returns ('continue_stmt', [])
 def p_continue_stmt(p):
     '''
     continue_stmt : CONTINUE ';'
     '''
-    p[0] = (p.slice[0].type, [])
+    p[0] = ContinueStatement()
 
 # returns ('return_stmt', [*expr] or [])
+# or returns ('return_arr', [IDENT])
 def p_return_stmt(p):
     '''
     return_stmt : RETURN expr ';'
                 | RETURN ';'
+                | RETURN '[' ']' IDENT ';'
     '''
-    p[0] = (p.slice[0].type, p[2:-1])
+    if len(p) == 4:
+        p[0] = ReturnStatement(p[2])
+    elif len(p) == 3:
+        p[0] = ReturnStatement()
+    else:
+        p[0] = ReturnStatement(p[4], True)
 
 # forwards
 def p_expr_stmt(p):
     '''
     expr_stmt : expr ';'
     '''
-    p[0] = p[1]
+    p[0] = ExpressionStatement(p[1])
 
 # forwards with name 'block'
 def p_block(p):
     '''
     block : '{' block_stmt_list '}'
     '''
-    p[0] = (p.slice[0].type, p[2][1])
+    p[0] = Block(p[2])
 
-# returns ('block_stmt_list', [block_stmt...])
+# returns [block_stmt...]
 def p_block_stmt_list(p):
     '''
     block_stmt_list : block_stmt_list block_stmt
                     |
     '''
     if len(p) == 1:
-        p[0] = (p.slice[0].type, [])
+        p[0] = []
     else:
-        p[0] = (p.slice[0].type, p[1][1] + p[2:])
+        p[0] = p[1] + p[2:]
 
 # forwards
 def p_block_stmt(p):
@@ -245,7 +505,7 @@ def p_bin_expr(p):
              | expr '^' expr
              | lvalue EQ expr
     '''
-    p[0] = (p.slice[0].type, [p[2], p[1], p[3]])
+    p[0] = BinaryExpression(p[2], p[1], p[3])
 
 # forwards something
 def p_expr(p):
@@ -267,7 +527,7 @@ def p_function_call(p):
     '''
     function_call : function_name '(' arg_list ')'
     '''
-    p[0] = (p.slice[0].type, [p[1], p[3]])
+    p[0] = FunctionCall(p[1], p[3])
 
 # forwards
 def p_function_name(p):
@@ -277,7 +537,7 @@ def p_function_name(p):
     '''
     p[0] = p[1]
 
-# returns ('arg_list', [*expr...])
+# returns [*expr...]
 def p_arg_list(p):
     '''
     arg_list : arg_list ',' expr
@@ -285,9 +545,9 @@ def p_arg_list(p):
              |
     '''
     if len(p) <= 2:
-        p[0] = (p.slice[0].type, p[1:])
+        p[0] = p[1:]
     else:
-        p[0] = (p.slice[0].type, p[1][1] + [p[3]])
+        p[0] = p[1] + [p[3]]
 
 # forwards or returns ('IDENT', [IDENT])
 def p_lvalue(p):
@@ -297,10 +557,10 @@ def p_lvalue(p):
     simple_lvalue : array_acc
                   | IDENT
     '''
-    if p.slice[1].type == 'IDENT':
+    if p.slice[1].type != 'IDENT':
         p[0] = p[1]
     else:
-        p[0] = ('IDENT', [p[1]])
+        p[0] = Identifier(p[1])
 
 # returns ('deref', ['*' or '~', *expr])
 def p_deref(p):
@@ -308,21 +568,21 @@ def p_deref(p):
     deref : '*' '(' expr ')'
           | '~' '(' expr ')'
     '''
-    p[0] = (p.slice[0].type, [p[1], p[3]])
+    p[0] = Dereference(p[1], p[3] == '~')
 
 # returns ('address', [*simple_lvalue])
 def p_address(p):
     '''
     address : '&' simple_lvalue
     '''
-    p[0] = (p.slice[0].type, [p[2]])
+    p[0] = Address(p[2])
 
 # returns ('array_acc', [IDENT, *expr])
 def p_array_acc(p):
     '''
     array_acc : IDENT '[' expr ']'
     '''
-    p[0] = (p.slice[0].type, [p[1], p[3]])
+    p[0] = ArrayAccess(p[1], p[3])
 
 def p_error(p):
     if p:
@@ -356,7 +616,7 @@ if __name__ == '__main__':
         node_c += 1
         return "node" + str(node_c)
     def walk(n, i):
-        if not isinstance(n, tuple):
+        if not isinstance(n, tuple) and not (isinstance(n, FakeTuple) and n._tuple_elements):
             print("    " + i + " [label = \"" + str(n).replace('\\', '\\\\') + "\", shape = \"diamond\"]")
             return
         print("    " + i + " [label = \"" + n[0] + "\"]")
