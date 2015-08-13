@@ -31,6 +31,11 @@ class CodeGenerator:
         self.gfuncs = {}
         self.functions = []
         self.variables = []
+        self._label = None
+    def label(self, label):
+        if self._label:
+            raise Exception("Multiple labels")
+        self._label = label
     def write(self, inst = None, code = None, label=None, comment=None):
         """
         :type inst: str
@@ -41,6 +46,10 @@ class CodeGenerator:
         if not inst:
             self.out.write('\n')
             return
+        if self._label:
+            if label:
+                raise Exception("Already labeled")
+            label = self._label
         if self.margin:
             if not label:
                 label = ''
