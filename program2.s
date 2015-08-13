@@ -2,6 +2,25 @@
 ?@my_func:      push    ebp
                 mov     ebp,esp
                 sub     esp,0
+                sub     esp,4
+.while0:        push    0
+                pop     eax
+                cmp     eax,0
+                jz      .endwhile0
+                push    0
+                pop     eax
+.if0:           push    0
+                pop     eax
+                cmp     eax,0
+                jz      .ifelse0
+                jmp     .while0
+.ifelse0:       jmp     .endwhile0
+                push    0
+                pop     eax
+                jmp     .while0
+.endwhile0:     add     esp,4
+                push    0
+                jmp     .return
                 add     esp,0
                 push    0
 .return:        pop     eax
@@ -13,6 +32,9 @@
 ?@square:       push    ebp
                 mov     ebp,esp
                 sub     esp,0
+                push    0
+                pop     eax
+                jmp     .return
                 add     esp,0
                 push    0
 .return:        pop     eax
@@ -23,7 +45,20 @@
 ?@main:         push    ebp
                 mov     ebp,esp
                 sub     esp,4
-                add     esp,4
+                push    0
+                pop     eax
+                push    0
+                pop     eax
+                push    0
+                pop     eax
+.if1:
+
+.if2:
+
+.ifelse2:
+.ifelse2:
+
+.ifelse1:       add     esp,4
                 push    0
 .return:        pop     eax
                 mov     esp,ebp

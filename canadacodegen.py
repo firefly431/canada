@@ -1,7 +1,7 @@
 import functools
 import canadaparse
 
-from canadaparse import Program, GlobalDeclaration, GlobalVariable, VariableType, PrimitiveType, Void, ArrayDeclaration, ArrayLiteral, Function, BlockStatement, Statement, BreakStatement, ContinueStatement, ReturnStatement, VariableDeclaration, Block, Expression, ExpressionStatement, Literal, BinaryExpression, FunctionCall, LValue, SimpleLValue, Identifier, Dereference, Address, ArrayAccess
+from canadaparse import Program, GlobalDeclaration, GlobalVariable, VariableType, PrimitiveType, Void, ArrayDeclaration, ArrayLiteral, Function, BlockStatement, Statement, EmptyStatement, IfStatement, WhileLoop, BreakStatement, ContinueStatement, ReturnStatement, VariableDeclaration, Block, Expression, ExpressionStatement, Literal, BinaryExpression, FunctionCall, LValue, SimpleLValue, Identifier, Dereference, Address, ArrayAccess, Negate
 
 class StackEntry:
     def __init__(self, var, addr):
@@ -84,7 +84,7 @@ class CodeGenerator:
     def label(self, label):
         if not label: return
         if self._label:
-            raise Exception("Multiple labels")
+            self.write(label=self._label)
         self._label = label
     def write(self, inst = None, code = None, label=None, comment=None):
         """
@@ -93,14 +93,17 @@ class CodeGenerator:
         :type label: str
         :type comment: str
         """
-        if not inst:
-            self.out.write('\n')
-            return
         if self._label:
             if label:
-                raise Exception("Already labeled")
-            label = self._label
+                self.out.write(self._label + ':\n')
+            else:
+                label = self._label
             self._label = None
+        if not inst:
+            if label:
+                self.out.write(label + ':\n')
+            self.out.write('\n')
+            return
         if self.margin:
             if not label:
                 label = ''
@@ -232,7 +235,37 @@ class CodeGenerator:
         if not isinstance(f.type, Void):
             self.write('push', 'eax')
         self.write('jmp', 'ebx')
-    def generate_block(self, block, stack, slabel = None, elabel = None, function = False, clabel = None, blabel = None):
+    class BlockWrapper:
+        def __init__(self, cg, block, stack, function = False):
+            """
+            :type cg: CodeGenerator
+            :type block: Block
+            :type stack: StackFrame
+
+            will not generate instruction to deallocate locals if function
+            """
+            self.cg = cg
+            self.block = block
+            self.stack = stack
+            self.function = function
+        def __enter__(self):
+            self.vardecs = [v for v in self.block.statements if isinstance(v, VariableDeclaration)]
+            self.stack, self.bsize = self.stack.extend(self.vardecs)
+            self.cg.write('sub', 'esp,' + str(self.bsize))
+            return self
+        def __exit__(self, *args):
+            if not self.function:
+                self.cg.write('add', 'esp,' + str(self.bsize))
+    def generate_block_body(self, bw, clabel = None, blabel = None):
+        """
+        :type bw: CodeGenerator.BlockWrapper
+        """
+        for s in bw.block.statements:
+            if isinstance(s, Statement):
+                self.generate_statement(s, bw.stack, False, clabel, blabel)
+            else:
+                assert isinstance(s, VariableDeclaration)
+    def generate_block(self, block, stack, function = False, clabel = None, blabel = None):
         """
         :type block: Block
         :type stack: StackFrame
@@ -241,21 +274,9 @@ class CodeGenerator:
 
         clabel and blabel are for continue and break
         """
-        self.label(slabel)
-        vardecs = [v for v in block.statements if isinstance(v, VariableDeclaration)]
-        stack, bsize = stack.extend(vardecs)
-        self.write('sub', 'esp,' + str(bsize))
-        # block body
-        for s in block.statements:
-            if isinstance(s, Statement):
-                self.generate_statement(s, stack, clabel = clabel, blabel = blabel)
-            else:
-                assert isinstance(s, VariableDeclaration)
-        # end
-        if not function:
-            self.label(elabel)
-            self.write('add', 'esp,' + str(bsize))
-    def generate_statement(self, stmt, stack, label = None, function = False, clabel = None, blabel = None):
+        with CodeGenerator.BlockWrapper(self, block, stack, function) as bw:
+            self.generate_block_body(bw, clabel, blabel)
+    def generate_statement(self, stmt, stack, function = False, clabel = None, blabel = None):
         """
         :type stmt: Statement
         :type stack: StackFrame
@@ -263,7 +284,100 @@ class CodeGenerator:
         function is only passed to generate_block
         """
         if isinstance(stmt, Block):
-            return self.generate_block(stmt, stack, slabel = label)
+            return self.generate_block(stmt, stack)
+        if isinstance(stmt, IfStatement):
+            l_if = '.if' + str(self.ifc)
+            l_else = '.ifelse' + str(self.ifc)
+            self.ifc += 1
+            self.label(l_if)
+            _, jf = self.generate_condition(stmt.condition)
+            self.write(jf, l_else)
+            self.generate_statement(stmt.statement, stack, False, clabel, blabel)
+            self.label(l_else)
+            if stmt.else_clause:
+                self.generate_statement(stmt.else_clause, stack, False, clabel, blabel)
+        elif isinstance(stmt, WhileLoop):
+            l_begin = '.while' + str(self.whilec)
+            l_end = '.endwhile' + str(self.whilec)
+            self.whilec += 1
+            if isinstance(stmt.statement, Block):
+                with CodeGenerator.BlockWrapper(self, stmt.statement, stack) as bw:
+                    self.label(l_begin)
+                    _, jf = self.generate_condition(stmt.condition)
+                    self.write(jf, l_end)
+                    self.generate_block_body(bw, l_begin, l_end)
+                    self.write('jmp', l_begin)
+                    self.label(l_end)
+            elif isinstance(stmt.statement, BreakStatement):
+                self.generate_statement(ExpressionStatement(stmt.condition))
+            elif isinstance(stmt.statement, ContinueStatement) or isinstance(stmt.statement, EmptyStatement):
+                # busy loop
+                self.label(l_begin)
+                jt, _ = self.generate_condition(stmt.condition)
+                self.write(jt, l_begin)
+            else:
+                self.label(l_begin)
+                _, jf = self.generate_condition(stmt.condition)
+                self.write(jf, l_end)
+                self.generate_block_body(bw, l_begin, l_end)
+                self.write('jmp', l_begin)
+                self.label(l_end)
+        elif isinstance(stmt, BreakStatement):
+            if not blabel:
+                raise SyntaxError("Nowhere to break")
+            self.write('jmp', blabel)
+        elif isinstance(stmt, ContinueStatement):
+            if not clabel:
+                raise SyntaxError("Nowhere to continue")
+            self.write('jmp', clabel)
+        elif isinstance(stmt, ReturnStatement):
+            a = ReturnStatement()
+            if stmt.expr is not None:
+                self.push_expr(stmt.expr)
+            self.write('jmp', '.return')
+        elif isinstance(stmt, ExpressionStatement):
+            self.push_expr(stmt.expr)
+            self.write('pop', 'eax')
+        elif isinstance(stmt, EmptyStatement):
+            pass
+        else:
+            assert False
+    def generate_condition(self, cond):
+        """
+        :type cond: Expression
+
+        returns jump true, jump false
+        e.g. jnz, jz
+        """
+        # some easy conditions
+        if isinstance(cond, Negate):
+            a, b = self.generate_condition(cond.expr)
+            return b, a
+        if isinstance(cond, Literal):
+            if cond.type == 'INT_LIT':
+                if cond.value == 0:
+                    return None, 'jmp'
+                else:
+                    return 'jmp', None
+            elif cond.type == 'CHAR_LIT':
+                if cond.value == '\0':
+                    return None, 'jmp'
+                else:
+                    return 'jmp', None
+            else:
+                return 'jmp', None
+        if isinstance(cond, Address):
+            return 'jmp', None
+        # otherwise use a cmp
+        self.push_expr(cond)
+        self.write('pop', 'eax')
+        self.write('cmp', 'eax,0')
+        return 'jnz', 'jz'
+    def push_expr(self, expr):
+        """
+        :type expr: Expression
+        """
+        self.write('push', '0')
 
 if __name__ == '__main__':
     import sys

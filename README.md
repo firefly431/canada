@@ -24,5 +24,5 @@ Dependencies
 TODO
 ----
 
-Implement function generation for code generator
+Implement `push_expr`
 

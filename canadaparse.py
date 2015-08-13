@@ -17,6 +17,7 @@ precedence = (
     ('left', 'SHIFT'),
     ('left', '+', '-'),
     ('left', '*', '/', '~', '\\', '%', '@'),
+    ('left', '!'),
 )
 
 shownwarning = False
@@ -222,6 +223,13 @@ class ExpressionStatement(Statement):
         FakeTuple.__init__(self, expr)
     def __repr__(self):
         return repr(self.expr) + ';'
+
+class Negate(Expression):
+    def __init__(self, expr):
+        self.expr = expr
+        FakeTuple.__init__(self, ('negate', [expr]))
+    def __repr__(self):
+        return '!(' + repr(self.expr) + ')'
 
 class Literal(Expression):
     def __init__(self, type, value):
@@ -555,9 +563,12 @@ def p_expr(p):
          | lvalue
          | address
          | literal
+         | '!' expr
     '''
     if len(p) == 2:
         p[0] = p[1]
+    elif len(p) == 3:
+        p[0] = Negate(p[2])
     else:
         p[0] = p[2]
 
