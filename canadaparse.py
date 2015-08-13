@@ -77,7 +77,7 @@ class PrimitiveType(VariableType):
     def __repr__(self):
         return self.type
     def size(self):
-        return PrimitiveType.sizeof(self.type)
+        return 4
     @staticmethod
     def sizeof(t):
         if t == 'int':
@@ -106,7 +106,10 @@ class ArrayDeclaration(VariableType):
     def __repr__(self):
         return self.prim_type + '[' + (str(self.length) if self.length else '') + ']'
     def size(self):
-        return self.length * PrimitiveType.sizeof(self.prim_type)
+        r = self.length * PrimitiveType.sizeof(self.prim_type)
+        # round up
+        if r & 3: r = (r & ~3) + 4
+        return r
 
 class ArrayLiteral(FakeTuple):
     def __init__(self, elements):
