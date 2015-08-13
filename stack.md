@@ -75,7 +75,7 @@ Example:
     pop ebp
     pop ebx
     add esp, 12
-    push eax
+    push eax ; omit if function does not return
     jmp ebx
 
 Blocks
