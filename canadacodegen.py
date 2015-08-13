@@ -173,6 +173,8 @@ class CodeGenerator:
         Generate the instructions for a variable
         :type v: GlobalVariable
         """
+        if v.name == '_start':
+            raise SyntaxError('Reserved name')
         self.gvars[v.name] = v
         prim_type = v.var_type if isinstance(v.var_type, PrimitiveType) else v.var_type.prim_type
         dd = 'db' if prim_type == 'char' else 'dw'
@@ -387,6 +389,7 @@ class CodeGenerator:
     def generate_exports(self):
         for exp in self.exports:
             self.write('GLOBAL ' + ('?@' if exp.function else '') + exp.name)
+        self.write('GLOBAL ?@main')
 
 if __name__ == '__main__':
     import sys
