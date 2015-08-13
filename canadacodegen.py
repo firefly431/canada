@@ -72,7 +72,7 @@ class CodeGenerator:
     def string(self, s):
         i = self.stringc
         self.stringc += 1
-        name = 'sl' + str(i)
+        name = '??sl' + str(i)
         self.variables.append(GlobalVariable(VariableDeclaration(ArrayDeclaration('char', len(s) - s.count('\\') + s.count('\\\\')), name), Literal('STRING_LIT', s)))
         return name
     def value(self, t, v):
