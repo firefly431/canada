@@ -11,13 +11,13 @@ class StackEntry:
         """
         self.var = var
         self.addr = addr
-        self.next = addr + var.type.size()
+        self.next = addr - var.type.size()
     def value(self):
         return '[ebp' + ('+' + str(self.addr) if self.addr > 0 else str(self.addr)) + ']'
 
 class StackFrame:
     def __init__(self, parameters):
-        if not parameters: return
+        if parameters is None: return
         self.stack = [StackEntry(VariableDeclaration(PrimitiveType('int'), p), 8 + 4 * i) for i, p in reversed(list(enumerate(parameters)))]
         self.table = {p.var.name: p for p in self.stack}
         if self.stack:
@@ -25,14 +25,14 @@ class StackFrame:
     def _extend(self, variables):
         oldn = self.stack[-1].next if self.stack else -4
         for v in variables:
-            self.stack.append(StackEntry(v, self.stack[-1].next if self.stack else -1))
+            self.stack.append(StackEntry(v, self.stack[-1].next if self.stack else -4))
         ret = oldn - (self.stack[-1].next if self.stack else -4)
         self.table = {p.var.name: p for p in self.stack}
-        assert ret == sum(v.size() for v in variables)
+        assert ret == sum(v.type.size() for v in variables)
         return ret
     def extend(self, variables):
         "returns (StackFrame, int) where int is size of variables"
-        newstack = StackFrame()
+        newstack = StackFrame(None)
         newstack.stack = self.stack[:]
         newstack.table = None # will be filled in _extend
         return newstack, newstack._extend(variables)
@@ -44,7 +44,7 @@ class StackFrame:
         if last.addr > 0:
             return 0
         ret = -last.next - 4
-        assert ret == sum(a.size() for a in self.stack if a.addr > 0)
+        assert ret == sum(a.var.type.size() for a in self.stack if a.addr > 0)
         return ret
     def __getitem__(self, key):
         return self.table[key]
@@ -102,6 +102,7 @@ class CodeGenerator:
             if label:
                 raise Exception("Already labeled")
             label = self._label
+            self._label = None
         if self.margin:
             if not label:
                 label = ''
@@ -262,7 +263,7 @@ class CodeGenerator:
         function is only passed to generate_block
         """
         if isinstance(stmt, Block):
-            return generate_block(self, stmt, slabel = label)
+            return self.generate_block(stmt, stack, slabel = label)
 
 if __name__ == '__main__':
     import sys
