@@ -64,7 +64,9 @@ class GlobalVariable(GlobalDeclaration):
     def __repr__(self):
         return repr(self.var_type) + ' ' + self.name + ' = ' + repr(self.value)
 
-class VariableType(FakeTuple): pass
+class VariableType(FakeTuple):
+    def size(self):
+        raise NotImplementedError()
 
 class PrimitiveType(VariableType):
     def __init__(self, type):
@@ -73,6 +75,16 @@ class PrimitiveType(VariableType):
         FakeTuple.__init__(self, ('PRIM_TYPE', [type]))
     def __repr__(self):
         return self.type
+    def size(self):
+        return PrimitiveType.sizeof(self.type)
+    @staticmethod
+    def sizeof(t):
+        if t == 'int':
+            return 4
+        elif t == 'char':
+            return 1
+        else:
+            raise ValueError()
 
 class Void():
     def __init__(self):
@@ -92,6 +104,8 @@ class ArrayDeclaration(VariableType):
                                  [prim_type, length]))
     def __repr__(self):
         return self.prim_type + '[' + (str(self.length) if self.length else '') + ']'
+    def size(self):
+        return self.length * PrimitiveType.sizeof(self.prim_type)
 
 class ArrayLiteral(FakeTuple):
     def __init__(self, elements):
@@ -389,11 +403,11 @@ def p_function_header_body(p):
     '''
     p[0] = (p[2], p[4])
 
-# return [var_decl...]
+# return [IDENT...]
 def p_par_list(p):
     '''
-    par_list : par_list ',' var_decl
-             | var_decl
+    par_list : par_list ',' IDENT
+             | IDENT
              |
     '''
     if len(p) <= 2:

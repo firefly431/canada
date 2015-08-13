@@ -10,7 +10,7 @@ int foo = 8;
 char[] a = "foobar";
 int[] b = {1};
 
-int my_func(char a, int b) {
+int my_func(a, b) {
     while (a < 5) {
         a = b = a + 1;
         if (a < 3 & a <= 8)
@@ -23,7 +23,7 @@ int my_func(char a, int b) {
     return a;
 }
 
-void square(int addr) {
+void square(addr) {
     *(addr) = *(addr) * *(addr);
     return;
 }

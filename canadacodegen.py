@@ -3,6 +3,52 @@ import canadaparse
 
 from canadaparse import Program, GlobalDeclaration, GlobalVariable, VariableType, PrimitiveType, Void, ArrayDeclaration, ArrayLiteral, Function, BlockStatement, Statement, BreakStatement, ContinueStatement, ReturnStatement, VariableDeclaration, Block, Expression, ExpressionStatement, Literal, BinaryExpression, FunctionCall, LValue, SimpleLValue, Identifier, Dereference, Address, ArrayAccess
 
+class StackEntry:
+    def __init__(self, var, addr):
+        """
+        :type var: VariableDeclaration
+        :type addr: int
+        """
+        self.var = var
+        self.addr = addr
+        self.next = addr + var.type.size()
+    def value(self):
+        return '[ebp' + ('+' + str(self.addr) if self.addr > 0 else str(self.addr)) + ']'
+
+class StackFrame:
+    def __init__(self, parameters):
+        if not parameters: return
+        self.stack = [StackEntry(VariableDeclaration(PrimitiveType('int'), p), 8 + 4 * i) for i, p in reversed(list(enumerate(parameters)))]
+        self.table = {p.var.name: p for p in self.stack}
+        if self.stack:
+            self.stack[-1].next = -4
+    def _extend(self, variables):
+        oldn = self.stack[-1].next if self.stack else -4
+        for v in variables:
+            self.stack.append(StackEntry(v, self.stack[-1].next if self.stack else -1))
+        ret = oldn - (self.stack[-1].next if self.stack else -4)
+        self.table = {p.var.name: p for p in self.stack}
+        assert ret == sum(v.size() for v in variables)
+        return ret
+    def extend(self, variables):
+        "returns (StackFrame, int) where int is size of variables"
+        newstack = StackFrame()
+        newstack.stack = self.stack[:]
+        newstack.table = None # will be filled in _extend
+        return newstack, newstack._extend(variables)
+    def size(self):
+        "in bytes, does not include parameters"
+        if not self.stack:
+            return 0
+        last = self.stack[-1]
+        if last.addr > 0:
+            return 0
+        ret = -last.next - 4
+        assert ret == sum(a.size() for a in self.stack if a.addr > 0)
+        return ret
+    def __getitem__(self, key):
+        return self.table[key]
+
 def generate(fn, out=None, margin=16, iwidth=8, width=40):
     """
     Generate assembly file (out defaults to fn with the
@@ -24,7 +70,7 @@ class CodeGenerator:
         self.margin = margin
         self.iwidth = iwidth
         self.width = width
-        self.loopc = 0
+        self.whilec = 0
         self.ifc = 0
         self.stringc = 0
         self.gvars = {}
@@ -32,10 +78,16 @@ class CodeGenerator:
         self.functions = []
         self.variables = []
         self._label = None
+    def warn(self, warning):
+        import sys
+        sys.stderr.write('WARNING: ' + warning + '\n')
     def label(self, label):
+        if not label: return
         if self._label:
             raise Exception("Multiple labels")
         self._label = label
+    def directive(self, directive):
+        self.out.write(directive + '\n')
     def write(self, inst = None, code = None, label=None, comment=None):
         """
         :type inst: str
@@ -160,7 +212,57 @@ class CodeGenerator:
         for f in self.functions:
             self.generate_function(f)
     def generate_function(self, f):
-        pass
+        """
+        :type f: Function
+        """
+        stack = StackFrame(f.par_list)
+        self.label('?@' + f.name)
+        self.write('push', 'ebp')
+        self.write('mov', 'ebp,esp')
+        # function body
+        self.generate_statement(f.statement, stack, function=True)
+        # return
+        self.write('push', '0')
+        self.label('.return')
+        self.write('pop', 'eax')
+        self.write('mov', 'esp,ebp')
+        self.write('pop','ebp')
+        self.write('add', 'esp,' + str(4 * len(f.par_list)))
+        if not isinstance(f.type, Void):
+            self.write('push', 'eax')
+        self.write('jmp', 'ebx')
+    def generate_block(self, block, stack, slabel = None, elabel = None, function = False, clabel = None, blabel = None):
+        """
+        :type block: Block
+        :type stack: StackFrame
+
+        will not generate instruction to deallocate locals if function
+
+        clabel and blabel are for continue and break
+        """
+        self.label(slabel)
+        vardecs = [v for v in block.statements if isinstance(v, VariableDeclaration)]
+        stack, bsize = stack.extend(vardecs)
+        self.write('sub', 'esp,' + str(bsize))
+        # block body
+        for s in block.statements:
+            if isinstance(s, Statement):
+                self.generate_statement(s, stack, clabel = clabel, blabel = blabel)
+            else:
+                assert isinstance(s, VariableDeclaration)
+        # end
+        if not function:
+            self.label(elabel)
+            self.write('add', 'esp,' + str(bsize))
+    def generate_statement(self, stmt, stack, label = None, function = False, clabel = None, blabel = None):
+        """
+        :type stmt: Statement
+        :type stack: StackFrame
+
+        function is only passed to generate_block
+        """
+        if isinstance(stmt, Block):
+            return generate_block(self, stmt, slabel = label)
 
 if __name__ == '__main__':
     import sys

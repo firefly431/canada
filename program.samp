@@ -18,7 +18,7 @@
 
 int num = 5;
 
-void print_int(int n) {
+void print_int(n) {
     char[10] buffer;
     int i;
     i = 0;
