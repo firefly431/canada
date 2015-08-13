@@ -45,7 +45,7 @@ class Program(FakeTuple):
     def append(self, decl):
         self.decls.append(decl)
         return self
-    def repr(self):
+    def __repr__(self):
         return '\n'.join(map(repr, self.decls))
 
 class GlobalDeclaration(FakeTuple): pass
@@ -62,7 +62,7 @@ class GlobalVariable(GlobalDeclaration):
         FakeTuple.__init__(self, ('global_var',
                            [self.var_type, self.name, value]))
     def __repr__(self):
-        return repr(self.var_type) + ' ' + self.name + ' = ' + repr(self.value)
+        return repr(self.var_type) + ' ' + self.name + ' = ' + repr(self.value) + ';'
 
 class VariableType(FakeTuple):
     def size(self):
@@ -646,23 +646,26 @@ if __name__ == '__main__':
     # print(result)
     # print graphviz
     # lazy, so redirect stdout
-    sys.stdout = open((os.path.splitext(sys.argv[1])[0] if len(sys.argv) >= 2 else 'out') + '.dot', 'w')
-    print("digraph parse_tree {")
-    print("    node [shape = box];")
-    node_c = 0
-    def node(*args):
-        global node_c
-        node_c += 1
-        return "node" + str(node_c)
-    def walk(n, i):
-        if not isinstance(n, tuple) and not (isinstance(n, FakeTuple) and n._tuple_elements):
-            print("    " + i + " [label = \"" + str(n).replace('\\', '\\\\') + "\", shape = \"diamond\"]")
-            return
-        print("    " + i + " [label = \"" + n[0] + "\"]")
-        nodes = list(map(node, n[1]))
-        for nn in nodes:
-            print("    " + i + " -> " + nn)
-        for j, nn in enumerate(n[1]):
-            walk(nn, nodes[j])
-    walk(result, "node0")
-    print("}")
+    if len(sys.argv) >= 2:
+        sys.stdout = open(os.path.splitext(sys.argv[1])[0] + '.dot', 'w')
+        print("digraph parse_tree {")
+        print("    node [shape = box];")
+        node_c = 0
+        def node(*args):
+            global node_c
+            node_c += 1
+            return "node" + str(node_c)
+        def walk(n, i):
+            if not isinstance(n, tuple) and not (isinstance(n, FakeTuple) and n._tuple_elements):
+                print("    " + i + " [label = \"" + str(n).replace('\\', '\\\\') + "\", shape = \"diamond\"]")
+                return
+            print("    " + i + " [label = \"" + n[0] + "\"]")
+            nodes = list(map(node, n[1]))
+            for nn in nodes:
+                print("    " + i + " -> " + nn)
+            for j, nn in enumerate(n[1]):
+                walk(nn, nodes[j])
+        walk(result, "node0")
+        print("}")
+    else:
+        print(repr(result))
