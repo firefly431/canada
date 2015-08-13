@@ -134,7 +134,7 @@ class WhileLoop(Statement):
     def __init__(self, cond, stmt):
         self.condition = cond
         self.statement = stmt
-        FakeTuple.__init__(self, ('if_stmt', [cond, stmt])))
+        FakeTuple.__init__(self, ('if_stmt', [cond, stmt]))
 
 class BreakStatement(Statement):
     def __init__(self):
@@ -152,6 +152,7 @@ class ReturnStatement(Statement):
         :type expr: Expression
         :type array: bool
         """
+        self.expr = expr
         FakeTuple.__init__(self, ('return', [expr] if expr else []))
     def __repr__(self):
         if not self.expr: return 'return;'
@@ -245,9 +246,7 @@ class Identifier(SimpleLValue):
         :type name: str
         """
         self.name = name
-        FakeTuple.__init__(self, None)
-    def __str__(self):
-        return self.name
+        FakeTuple.__init__(self, ('IDENT', [name]))
     def __repr__(self):
         return self.name
 
@@ -261,7 +260,7 @@ class Dereference(LValue):
         self.char = char
         FakeTuple.__init__(self, ('deref', ['~' if char else '*', expr]))
     def __repr__(self):
-        return self.char + '(' + repr(self.expr) + ')'
+        return ('~' if self.char else '*') + '(' + repr(self.expr) + ')'
 
 class Address(Expression):
     def __init__(self, lvalue):
@@ -462,7 +461,7 @@ def p_return_stmt(p):
     '''
     if len(p) == 4:
         p[0] = ReturnStatement(p[2])
-    else len(p) == 3:
+    else:
         p[0] = ReturnStatement()
 
 # forwards
