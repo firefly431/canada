@@ -321,6 +321,18 @@ class ArrayAccess(SimpleLValue):
     def __repr__(self):
         return self.array + '[' + repr(self.index) + ']'
 
+class Export(GlobalDeclaration):
+    def __init__(self, name, function = False):
+        """
+        :type name: str
+        :type function: bool
+        """
+        self.name = name
+        self.function = function
+        FakeTuple.__init__(self, ('export_func' if function else 'export', [name]))
+    def __repr__(self):
+        return 'export ' + self.name + ('();' if self.function else ';')
+
 # return ('program', [*global_decl...])
 def p_program(p):
     '''
@@ -337,6 +349,7 @@ def p_global_decl(p):
     '''
     global_decl : global_var
                 | function
+                | export
     '''
     p[0] = p[1]
 
@@ -626,6 +639,13 @@ def p_address(p):
     address : '&' simple_lvalue
     '''
     p[0] = Address(p[2])
+
+def p_export(p):
+    '''
+    export : EXPORT IDENT ';'
+           | EXPORT IDENT '(' ')' ';'
+    '''
+    p[0] = Export(p[2], len(p) == 6)
 
 # returns ('array_acc', [IDENT, *expr])
 def p_array_acc(p):

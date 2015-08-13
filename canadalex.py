@@ -11,6 +11,7 @@ reserved = (
     'break',
     'continue',
     'return',
+    'export',
 )
 
 types = (

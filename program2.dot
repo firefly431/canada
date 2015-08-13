@@ -10,351 +10,359 @@ digraph parse_tree {
     node0 -> node7
     node0 -> node8
     node0 -> node9
+    node0 -> node10
+    node0 -> node11
     node1 [label = "global_var"]
-    node1 -> node10
-    node1 -> node11
     node1 -> node12
-    node10 [label = "array_decl"]
-    node10 -> node13
-    node10 -> node14
-    node13 [label = "int", shape = "diamond"]
-    node14 [label = "5", shape = "diamond"]
-    node11 [label = "test_array", shape = "diamond"]
-    node12 [label = "array_lit"]
+    node1 -> node13
+    node1 -> node14
+    node12 [label = "array_decl"]
     node12 -> node15
     node12 -> node16
-    node12 -> node17
-    node12 -> node18
-    node12 -> node19
-    node15 [label = "INT_LIT"]
-    node15 -> node20
-    node20 [label = "1", shape = "diamond"]
-    node16 [label = "INT_LIT"]
-    node16 -> node21
-    node21 [label = "2", shape = "diamond"]
+    node15 [label = "int", shape = "diamond"]
+    node16 [label = "5", shape = "diamond"]
+    node13 [label = "test_array", shape = "diamond"]
+    node14 [label = "array_lit"]
+    node14 -> node17
+    node14 -> node18
+    node14 -> node19
+    node14 -> node20
+    node14 -> node21
     node17 [label = "INT_LIT"]
     node17 -> node22
-    node22 [label = "3", shape = "diamond"]
+    node22 [label = "1", shape = "diamond"]
     node18 [label = "INT_LIT"]
     node18 -> node23
-    node23 [label = "4", shape = "diamond"]
-    node19 [label = "CHAR_LIT"]
+    node23 [label = "2", shape = "diamond"]
+    node19 [label = "INT_LIT"]
     node19 -> node24
-    node24 [label = "5", shape = "diamond"]
+    node24 [label = "3", shape = "diamond"]
+    node20 [label = "INT_LIT"]
+    node20 -> node25
+    node25 [label = "4", shape = "diamond"]
+    node21 [label = "CHAR_LIT"]
+    node21 -> node26
+    node26 [label = "5", shape = "diamond"]
     node2 [label = "global_var"]
-    node2 -> node25
-    node2 -> node26
     node2 -> node27
-    node25 [label = "array_decl"]
-    node25 -> node28
-    node25 -> node29
-    node28 [label = "int", shape = "diamond"]
-    node29 [label = "2", shape = "diamond"]
-    node26 [label = "useless", shape = "diamond"]
-    node27 [label = "array_lit"]
+    node2 -> node28
+    node2 -> node29
+    node27 [label = "array_decl"]
     node27 -> node30
     node27 -> node31
-    node30 [label = "STRING_LIT"]
-    node30 -> node32
-    node32 [label = "HELLO, WORLD!\\n", shape = "diamond"]
-    node31 [label = "STRING_LIT"]
-    node31 -> node33
-    node33 [label = "\\r\\n\\t \\\\\\\\\\\\", shape = "diamond"]
+    node30 [label = "int", shape = "diamond"]
+    node31 [label = "2", shape = "diamond"]
+    node28 [label = "useless", shape = "diamond"]
+    node29 [label = "array_lit"]
+    node29 -> node32
+    node29 -> node33
+    node32 [label = "STRING_LIT"]
+    node32 -> node34
+    node34 [label = "HELLO, WORLD!\\n", shape = "diamond"]
+    node33 [label = "STRING_LIT"]
+    node33 -> node35
+    node35 [label = "\\r\\n\\t \\\\\\\\\\\\", shape = "diamond"]
     node3 [label = "global_var"]
-    node3 -> node34
-    node3 -> node35
     node3 -> node36
-    node34 [label = "array_decl"]
-    node34 -> node37
-    node34 -> node38
-    node37 [label = "char", shape = "diamond"]
-    node38 [label = "3", shape = "diamond"]
-    node35 [label = "str", shape = "diamond"]
-    node36 [label = "STRING_LIT"]
+    node3 -> node37
+    node3 -> node38
+    node36 [label = "array_decl"]
     node36 -> node39
-    node39 [label = "abc", shape = "diamond"]
+    node36 -> node40
+    node39 [label = "char", shape = "diamond"]
+    node40 [label = "3", shape = "diamond"]
+    node37 [label = "str", shape = "diamond"]
+    node38 [label = "STRING_LIT"]
+    node38 -> node41
+    node41 [label = "abc", shape = "diamond"]
     node4 [label = "global_var"]
-    node4 -> node40
-    node4 -> node41
     node4 -> node42
-    node40 [label = "PRIM_TYPE"]
-    node40 -> node43
-    node43 [label = "int", shape = "diamond"]
-    node41 [label = "foo", shape = "diamond"]
-    node42 [label = "INT_LIT"]
-    node42 -> node44
-    node44 [label = "8", shape = "diamond"]
+    node4 -> node43
+    node4 -> node44
+    node42 [label = "PRIM_TYPE"]
+    node42 -> node45
+    node45 [label = "int", shape = "diamond"]
+    node43 [label = "foo", shape = "diamond"]
+    node44 [label = "INT_LIT"]
+    node44 -> node46
+    node46 [label = "8", shape = "diamond"]
     node5 [label = "global_var"]
-    node5 -> node45
-    node5 -> node46
     node5 -> node47
-    node45 [label = "array_decl"]
-    node45 -> node48
-    node45 -> node49
-    node48 [label = "char", shape = "diamond"]
-    node49 [label = "None", shape = "diamond"]
-    node46 [label = "a", shape = "diamond"]
-    node47 [label = "STRING_LIT"]
+    node5 -> node48
+    node5 -> node49
+    node47 [label = "array_decl"]
     node47 -> node50
-    node50 [label = "foobar", shape = "diamond"]
+    node47 -> node51
+    node50 [label = "char", shape = "diamond"]
+    node51 [label = "None", shape = "diamond"]
+    node48 [label = "a", shape = "diamond"]
+    node49 [label = "STRING_LIT"]
+    node49 -> node52
+    node52 [label = "foobar", shape = "diamond"]
     node6 [label = "global_var"]
-    node6 -> node51
-    node6 -> node52
     node6 -> node53
-    node51 [label = "array_decl"]
-    node51 -> node54
-    node51 -> node55
-    node54 [label = "int", shape = "diamond"]
-    node55 [label = "None", shape = "diamond"]
-    node52 [label = "b", shape = "diamond"]
-    node53 [label = "array_lit"]
+    node6 -> node54
+    node6 -> node55
+    node53 [label = "array_decl"]
     node53 -> node56
-    node56 [label = "INT_LIT"]
-    node56 -> node57
-    node57 [label = "1", shape = "diamond"]
-    node7 [label = "function"]
-    node7 -> node58
-    node7 -> node59
+    node53 -> node57
+    node56 [label = "int", shape = "diamond"]
+    node57 [label = "None", shape = "diamond"]
+    node54 [label = "b", shape = "diamond"]
+    node55 [label = "array_lit"]
+    node55 -> node58
+    node58 [label = "INT_LIT"]
+    node58 -> node59
+    node59 [label = "1", shape = "diamond"]
+    node7 [label = "export"]
     node7 -> node60
-    node7 -> node61
-    node58 [label = "PRIM_TYPE"]
-    node58 -> node62
-    node62 [label = "int", shape = "diamond"]
-    node59 [label = "my_func", shape = "diamond"]
-    node60 [label = "par_list"]
-    node60 -> node63
-    node60 -> node64
-    node63 [label = "a", shape = "diamond"]
-    node64 [label = "b", shape = "diamond"]
-    node61 [label = "block"]
-    node61 -> node65
-    node61 -> node66
-    node65 [label = "if_stmt"]
-    node65 -> node67
-    node65 -> node68
-    node67 [label = "bin_expr"]
-    node67 -> node69
-    node67 -> node70
-    node67 -> node71
-    node69 [label = "<", shape = "diamond"]
-    node70 [label = "IDENT"]
-    node70 -> node72
-    node72 [label = "a", shape = "diamond"]
-    node71 [label = "INT_LIT"]
-    node71 -> node73
-    node73 [label = "5", shape = "diamond"]
-    node68 [label = "block"]
-    node68 -> node74
-    node68 -> node75
-    node68 -> node76
-    node68 -> node77
-    node74 [label = "bin_expr"]
-    node74 -> node78
-    node74 -> node79
-    node74 -> node80
-    node78 [label = "=", shape = "diamond"]
-    node79 [label = "IDENT"]
-    node79 -> node81
-    node81 [label = "a", shape = "diamond"]
-    node80 [label = "bin_expr"]
-    node80 -> node82
-    node80 -> node83
-    node80 -> node84
-    node82 [label = "=", shape = "diamond"]
-    node83 [label = "IDENT"]
-    node83 -> node85
-    node85 [label = "b", shape = "diamond"]
-    node84 [label = "bin_expr"]
-    node84 -> node86
-    node84 -> node87
-    node84 -> node88
-    node86 [label = "+", shape = "diamond"]
-    node87 [label = "IDENT"]
-    node87 -> node89
-    node89 [label = "a", shape = "diamond"]
-    node88 [label = "INT_LIT"]
-    node88 -> node90
-    node90 [label = "1", shape = "diamond"]
-    node75 [label = "if_stmt"]
-    node75 -> node91
-    node75 -> node92
-    node75 -> node93
-    node91 [label = "bin_expr"]
-    node91 -> node94
-    node91 -> node95
-    node91 -> node96
-    node94 [label = "&", shape = "diamond"]
-    node95 [label = "bin_expr"]
-    node95 -> node97
-    node95 -> node98
-    node95 -> node99
-    node97 [label = "<", shape = "diamond"]
-    node98 [label = "IDENT"]
-    node98 -> node100
-    node100 [label = "a", shape = "diamond"]
-    node99 [label = "INT_LIT"]
-    node99 -> node101
-    node101 [label = "3", shape = "diamond"]
-    node96 [label = "bin_expr"]
-    node96 -> node102
-    node96 -> node103
-    node96 -> node104
-    node102 [label = "<=", shape = "diamond"]
-    node103 [label = "IDENT"]
-    node103 -> node105
-    node105 [label = "a", shape = "diamond"]
-    node104 [label = "INT_LIT"]
-    node104 -> node106
-    node106 [label = "8", shape = "diamond"]
-    node92 [label = "continue_stmt"]
-    node93 [label = "break_stmt"]
-    node76 [label = "var_decl"]
-    node76 -> node107
-    node76 -> node108
-    node107 [label = "PRIM_TYPE"]
-    node107 -> node109
-    node109 [label = "int", shape = "diamond"]
-    node108 [label = "c", shape = "diamond"]
-    node77 [label = "bin_expr"]
-    node77 -> node110
-    node77 -> node111
-    node77 -> node112
-    node110 [label = "=", shape = "diamond"]
-    node111 [label = "IDENT"]
-    node111 -> node113
-    node113 [label = "c", shape = "diamond"]
-    node112 [label = "bin_expr"]
-    node112 -> node114
-    node112 -> node115
-    node112 -> node116
-    node114 [label = "\\", shape = "diamond"]
-    node115 [label = "IDENT"]
-    node115 -> node117
-    node117 [label = "a", shape = "diamond"]
-    node116 [label = "IDENT"]
-    node116 -> node118
-    node118 [label = "b", shape = "diamond"]
-    node66 [label = "return"]
-    node66 -> node119
-    node119 [label = "IDENT"]
-    node119 -> node120
-    node120 [label = "a", shape = "diamond"]
+    node60 [label = "str", shape = "diamond"]
     node8 [label = "function"]
-    node8 -> node121
-    node8 -> node122
-    node8 -> node123
-    node8 -> node124
-    node121 [label = "void", shape = "diamond"]
-    node122 [label = "square", shape = "diamond"]
-    node123 [label = "par_list"]
-    node123 -> node125
-    node125 [label = "addr", shape = "diamond"]
-    node124 [label = "block"]
-    node124 -> node126
-    node124 -> node127
-    node126 [label = "bin_expr"]
-    node126 -> node128
-    node126 -> node129
-    node126 -> node130
-    node128 [label = "=", shape = "diamond"]
-    node129 [label = "deref"]
-    node129 -> node131
-    node129 -> node132
-    node131 [label = "*", shape = "diamond"]
-    node132 [label = "IDENT"]
-    node132 -> node133
-    node133 [label = "addr", shape = "diamond"]
+    node8 -> node61
+    node8 -> node62
+    node8 -> node63
+    node8 -> node64
+    node61 [label = "PRIM_TYPE"]
+    node61 -> node65
+    node65 [label = "int", shape = "diamond"]
+    node62 [label = "my_func", shape = "diamond"]
+    node63 [label = "par_list"]
+    node63 -> node66
+    node63 -> node67
+    node66 [label = "a", shape = "diamond"]
+    node67 [label = "b", shape = "diamond"]
+    node64 [label = "block"]
+    node64 -> node68
+    node64 -> node69
+    node68 [label = "if_stmt"]
+    node68 -> node70
+    node68 -> node71
+    node70 [label = "bin_expr"]
+    node70 -> node72
+    node70 -> node73
+    node70 -> node74
+    node72 [label = "<", shape = "diamond"]
+    node73 [label = "IDENT"]
+    node73 -> node75
+    node75 [label = "a", shape = "diamond"]
+    node74 [label = "INT_LIT"]
+    node74 -> node76
+    node76 [label = "5", shape = "diamond"]
+    node71 [label = "block"]
+    node71 -> node77
+    node71 -> node78
+    node71 -> node79
+    node71 -> node80
+    node77 [label = "bin_expr"]
+    node77 -> node81
+    node77 -> node82
+    node77 -> node83
+    node81 [label = "=", shape = "diamond"]
+    node82 [label = "IDENT"]
+    node82 -> node84
+    node84 [label = "a", shape = "diamond"]
+    node83 [label = "bin_expr"]
+    node83 -> node85
+    node83 -> node86
+    node83 -> node87
+    node85 [label = "=", shape = "diamond"]
+    node86 [label = "IDENT"]
+    node86 -> node88
+    node88 [label = "b", shape = "diamond"]
+    node87 [label = "bin_expr"]
+    node87 -> node89
+    node87 -> node90
+    node87 -> node91
+    node89 [label = "+", shape = "diamond"]
+    node90 [label = "IDENT"]
+    node90 -> node92
+    node92 [label = "a", shape = "diamond"]
+    node91 [label = "INT_LIT"]
+    node91 -> node93
+    node93 [label = "1", shape = "diamond"]
+    node78 [label = "if_stmt"]
+    node78 -> node94
+    node78 -> node95
+    node78 -> node96
+    node94 [label = "bin_expr"]
+    node94 -> node97
+    node94 -> node98
+    node94 -> node99
+    node97 [label = "&", shape = "diamond"]
+    node98 [label = "bin_expr"]
+    node98 -> node100
+    node98 -> node101
+    node98 -> node102
+    node100 [label = "<", shape = "diamond"]
+    node101 [label = "IDENT"]
+    node101 -> node103
+    node103 [label = "a", shape = "diamond"]
+    node102 [label = "INT_LIT"]
+    node102 -> node104
+    node104 [label = "3", shape = "diamond"]
+    node99 [label = "bin_expr"]
+    node99 -> node105
+    node99 -> node106
+    node99 -> node107
+    node105 [label = "<=", shape = "diamond"]
+    node106 [label = "IDENT"]
+    node106 -> node108
+    node108 [label = "a", shape = "diamond"]
+    node107 [label = "INT_LIT"]
+    node107 -> node109
+    node109 [label = "8", shape = "diamond"]
+    node95 [label = "continue_stmt"]
+    node96 [label = "break_stmt"]
+    node79 [label = "var_decl"]
+    node79 -> node110
+    node79 -> node111
+    node110 [label = "PRIM_TYPE"]
+    node110 -> node112
+    node112 [label = "int", shape = "diamond"]
+    node111 [label = "c", shape = "diamond"]
+    node80 [label = "bin_expr"]
+    node80 -> node113
+    node80 -> node114
+    node80 -> node115
+    node113 [label = "=", shape = "diamond"]
+    node114 [label = "IDENT"]
+    node114 -> node116
+    node116 [label = "c", shape = "diamond"]
+    node115 [label = "bin_expr"]
+    node115 -> node117
+    node115 -> node118
+    node115 -> node119
+    node117 [label = "\\", shape = "diamond"]
+    node118 [label = "IDENT"]
+    node118 -> node120
+    node120 [label = "a", shape = "diamond"]
+    node119 [label = "IDENT"]
+    node119 -> node121
+    node121 [label = "b", shape = "diamond"]
+    node69 [label = "return"]
+    node69 -> node122
+    node122 [label = "IDENT"]
+    node122 -> node123
+    node123 [label = "a", shape = "diamond"]
+    node9 [label = "export_func"]
+    node9 -> node124
+    node124 [label = "my_func", shape = "diamond"]
+    node10 [label = "function"]
+    node10 -> node125
+    node10 -> node126
+    node10 -> node127
+    node10 -> node128
+    node125 [label = "void", shape = "diamond"]
+    node126 [label = "square", shape = "diamond"]
+    node127 [label = "par_list"]
+    node127 -> node129
+    node129 [label = "addr", shape = "diamond"]
+    node128 [label = "block"]
+    node128 -> node130
+    node128 -> node131
     node130 [label = "bin_expr"]
+    node130 -> node132
+    node130 -> node133
     node130 -> node134
-    node130 -> node135
-    node130 -> node136
-    node134 [label = "*", shape = "diamond"]
-    node135 [label = "deref"]
-    node135 -> node137
-    node135 -> node138
-    node137 [label = "*", shape = "diamond"]
-    node138 [label = "IDENT"]
-    node138 -> node139
-    node139 [label = "addr", shape = "diamond"]
-    node136 [label = "deref"]
-    node136 -> node140
-    node136 -> node141
-    node140 [label = "*", shape = "diamond"]
-    node141 [label = "IDENT"]
-    node141 -> node142
-    node142 [label = "addr", shape = "diamond"]
-    node127 [label = "return"]
-    node9 [label = "function"]
-    node9 -> node143
-    node9 -> node144
-    node9 -> node145
-    node9 -> node146
-    node143 [label = "void", shape = "diamond"]
-    node144 [label = "main", shape = "diamond"]
-    node145 [label = "par_list"]
-    node146 [label = "block"]
-    node146 -> node147
-    node146 -> node148
-    node146 -> node149
-    node146 -> node150
-    node146 -> node151
-    node147 [label = "var_decl"]
-    node147 -> node152
-    node147 -> node153
-    node152 [label = "PRIM_TYPE"]
-    node152 -> node154
-    node154 [label = "int", shape = "diamond"]
-    node153 [label = "a", shape = "diamond"]
-    node148 [label = "bin_expr"]
-    node148 -> node155
-    node148 -> node156
-    node148 -> node157
-    node155 [label = "=", shape = "diamond"]
-    node156 [label = "IDENT"]
+    node132 [label = "=", shape = "diamond"]
+    node133 [label = "deref"]
+    node133 -> node135
+    node133 -> node136
+    node135 [label = "*", shape = "diamond"]
+    node136 [label = "IDENT"]
+    node136 -> node137
+    node137 [label = "addr", shape = "diamond"]
+    node134 [label = "bin_expr"]
+    node134 -> node138
+    node134 -> node139
+    node134 -> node140
+    node138 [label = "*", shape = "diamond"]
+    node139 [label = "deref"]
+    node139 -> node141
+    node139 -> node142
+    node141 [label = "*", shape = "diamond"]
+    node142 [label = "IDENT"]
+    node142 -> node143
+    node143 [label = "addr", shape = "diamond"]
+    node140 [label = "deref"]
+    node140 -> node144
+    node140 -> node145
+    node144 [label = "*", shape = "diamond"]
+    node145 [label = "IDENT"]
+    node145 -> node146
+    node146 [label = "addr", shape = "diamond"]
+    node131 [label = "return"]
+    node11 [label = "function"]
+    node11 -> node147
+    node11 -> node148
+    node11 -> node149
+    node11 -> node150
+    node147 [label = "void", shape = "diamond"]
+    node148 [label = "main", shape = "diamond"]
+    node149 [label = "par_list"]
+    node150 [label = "block"]
+    node150 -> node151
+    node150 -> node152
+    node150 -> node153
+    node150 -> node154
+    node150 -> node155
+    node151 [label = "var_decl"]
+    node151 -> node156
+    node151 -> node157
+    node156 [label = "PRIM_TYPE"]
     node156 -> node158
-    node158 [label = "a", shape = "diamond"]
-    node157 [label = "INT_LIT"]
-    node157 -> node159
-    node159 [label = "8", shape = "diamond"]
-    node149 [label = "function_call"]
-    node149 -> node160
-    node149 -> node161
-    node160 [label = "square", shape = "diamond"]
-    node161 [label = "arg_list"]
-    node161 -> node162
-    node162 [label = "address"]
-    node162 -> node163
-    node163 [label = "IDENT"]
-    node163 -> node164
-    node164 [label = "a", shape = "diamond"]
-    node150 [label = "function_call"]
-    node150 -> node165
-    node150 -> node166
-    node165 [label = "square", shape = "diamond"]
-    node166 [label = "arg_list"]
+    node158 [label = "int", shape = "diamond"]
+    node157 [label = "a", shape = "diamond"]
+    node152 [label = "bin_expr"]
+    node152 -> node159
+    node152 -> node160
+    node152 -> node161
+    node159 [label = "=", shape = "diamond"]
+    node160 [label = "IDENT"]
+    node160 -> node162
+    node162 [label = "a", shape = "diamond"]
+    node161 [label = "INT_LIT"]
+    node161 -> node163
+    node163 [label = "8", shape = "diamond"]
+    node153 [label = "function_call"]
+    node153 -> node164
+    node153 -> node165
+    node164 [label = "square", shape = "diamond"]
+    node165 [label = "arg_list"]
+    node165 -> node166
+    node166 [label = "address"]
     node166 -> node167
-    node167 [label = "address"]
+    node167 [label = "IDENT"]
     node167 -> node168
-    node168 [label = "array_acc"]
-    node168 -> node169
-    node168 -> node170
-    node169 [label = "test_array", shape = "diamond"]
-    node170 [label = "INT_LIT"]
+    node168 [label = "a", shape = "diamond"]
+    node154 [label = "function_call"]
+    node154 -> node169
+    node154 -> node170
+    node169 [label = "square", shape = "diamond"]
+    node170 [label = "arg_list"]
     node170 -> node171
-    node171 [label = "3", shape = "diamond"]
-    node151 [label = "if_stmt"]
-    node151 -> node172
-    node151 -> node173
-    node172 [label = "INT_LIT"]
+    node171 [label = "address"]
+    node171 -> node172
+    node172 [label = "array_acc"]
+    node172 -> node173
     node172 -> node174
-    node174 [label = "1", shape = "diamond"]
-    node173 [label = "if_stmt"]
-    node173 -> node175
-    node173 -> node176
-    node173 -> node177
-    node175 [label = "INT_LIT"]
-    node175 -> node178
+    node173 [label = "test_array", shape = "diamond"]
+    node174 [label = "INT_LIT"]
+    node174 -> node175
+    node175 [label = "3", shape = "diamond"]
+    node155 [label = "if_stmt"]
+    node155 -> node176
+    node155 -> node177
+    node176 [label = "INT_LIT"]
+    node176 -> node178
     node178 [label = "1", shape = "diamond"]
-    node176 [label = ";", shape = "diamond"]
-    node177 [label = ";", shape = "diamond"]
+    node177 [label = "if_stmt"]
+    node177 -> node179
+    node177 -> node180
+    node177 -> node181
+    node179 [label = "INT_LIT"]
+    node179 -> node182
+    node182 [label = "1", shape = "diamond"]
+    node180 [label = ";", shape = "diamond"]
+    node181 [label = ";", shape = "diamond"]
 }

@@ -1,7 +1,7 @@
 import functools
 import canadaparse
 
-from canadaparse import Program, GlobalDeclaration, GlobalVariable, VariableType, PrimitiveType, Void, ArrayDeclaration, ArrayLiteral, Function, BlockStatement, Statement, EmptyStatement, IfStatement, WhileLoop, BreakStatement, ContinueStatement, ReturnStatement, VariableDeclaration, Block, Expression, ExpressionStatement, Literal, BinaryExpression, FunctionCall, LValue, SimpleLValue, Identifier, Dereference, Address, ArrayAccess, Negate
+from canadaparse import Program, GlobalDeclaration, GlobalVariable, VariableType, PrimitiveType, Void, ArrayDeclaration, ArrayLiteral, Function, BlockStatement, Statement, EmptyStatement, IfStatement, WhileLoop, BreakStatement, ContinueStatement, ReturnStatement, VariableDeclaration, Block, Expression, ExpressionStatement, Literal, BinaryExpression, FunctionCall, LValue, SimpleLValue, Identifier, Dereference, Address, ArrayAccess, Negate, Export
 
 class StackEntry:
     def __init__(self, var, addr):
@@ -77,6 +77,7 @@ class CodeGenerator:
         self.gfuncs = {}
         self.functions = []
         self.variables = []
+        self.exports = []
         self._label = None
     def warn(self, warning):
         import sys
@@ -126,13 +127,17 @@ class CodeGenerator:
         assert isinstance(ast, Program)
         self.variables = [d for d in ast.decls if isinstance(d, GlobalVariable)]
         self.functions = [d for d in ast.decls if isinstance(d, Function)]
-        assert all((x in self.variables) ^ (x in self.functions) for x in ast.decls)
+        self.exports = [d for d in ast.decls if isinstance(d, Export)]
+        assert all(sum((x in self.variables, x in self.functions, x in self.exports)) == 1 for x in ast.decls)
         self.generate_text()
         self.generate_data()
+        self.generate_exports()
         for name, var in sorted(self.gvars.items()):
             print(repr(var))
         for name, func in sorted(self.gfuncs.items()):
             print(repr(func))
+        for exp in self.exports:
+            print(repr(exp))
     def string(self, s):
         i = self.stringc
         self.stringc += 1
@@ -378,6 +383,9 @@ class CodeGenerator:
         :type expr: Expression
         """
         self.write('push', '0')
+    def generate_exports(self):
+        for exp in self.exports:
+            self.write('GLOBAL ' + ('?@' if exp.function else '') + exp.name)
 
 if __name__ == '__main__':
     import sys

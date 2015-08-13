@@ -74,3 +74,5 @@ a:              db      'foobar'
 b:              dw      1
 ??sl0:          db      'HELLO, WORLD!\n'
 ??sl1:          db      '\r\n\t \\\\\\'
+                GLOBAL str
+                GLOBAL ?@my_func

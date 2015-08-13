@@ -51,3 +51,8 @@ void main() {
     }
     print_int(r);
 }
+
+// let's say we want to export everything
+export print_int();
+export main(); // automatically exported
+export num;
