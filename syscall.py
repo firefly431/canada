@@ -3,4 +3,5 @@ syscalls = {
     '$close': 6,
     '$read': 3,
     '$write': 4,
+    '$exit': 1,
 }

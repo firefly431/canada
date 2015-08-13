@@ -3,6 +3,9 @@
  *
  * (char * is equivalent to an int)
  *
+ * void $exit(int code);
+ * syscall 1
+ *
  * int $open(char *name, int flags, int mode);
  * syscall 5
  *
