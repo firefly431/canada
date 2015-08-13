@@ -86,8 +86,6 @@ class CodeGenerator:
         if self._label:
             raise Exception("Multiple labels")
         self._label = label
-    def directive(self, directive):
-        self.out.write(directive + '\n')
     def write(self, inst = None, code = None, label=None, comment=None):
         """
         :type inst: str
