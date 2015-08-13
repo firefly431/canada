@@ -52,11 +52,8 @@
                 push    0
                 pop     eax
 .if1:
-
 .if2:
-
 .ifelse2:
-
 .ifelse1:       add     esp,4
                 push    0
 .return:        pop     eax

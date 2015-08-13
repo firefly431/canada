@@ -103,7 +103,8 @@ class CodeGenerator:
         if not inst:
             if label:
                 self.out.write(label + ':\n')
-            self.out.write('\n')
+            else:
+                self.out.write('\n')
             return
         if self.margin:
             if not label:
