@@ -128,9 +128,10 @@ class CodeGenerator:
         assert all((x in self.variables) ^ (x in self.functions) for x in ast.decls)
         self.generate_text()
         self.generate_data()
-        for name, type in sorted(self.gvars.items()):
-            print(repr(type), name)
-        print(self.gfuncs)
+        for name, var in sorted(self.gvars.items()):
+            print(repr(var))
+        for name, func in sorted(self.gfuncs.items()):
+            print(repr(func))
     def string(self, s):
         i = self.stringc
         self.stringc += 1
@@ -165,6 +166,7 @@ class CodeGenerator:
         Generate the instructions for a variable
         :type v: GlobalVariable
         """
+        self.gvars[v.name] = v
         prim_type = v.var_type if isinstance(v.var_type, PrimitiveType) else v.var_type.prim_type
         dd = 'db' if prim_type == 'char' else 'dw'
         if isinstance(v.var_type, ArrayDeclaration):
@@ -193,7 +195,6 @@ class CodeGenerator:
                     label=v.name)
         else:
             self.write(dd, str(self.value(prim_type, v.value)), label=v.name)
-        self.gvars[v.name] = v.var_type
     def generate_data(self):
         """
         Generate the .data section
@@ -216,6 +217,7 @@ class CodeGenerator:
         """
         :type f: Function
         """
+        self.gfuncs[f.name] = f
         stack = StackFrame(f.par_list)
         self.label('?@' + f.name)
         self.write('push', 'ebp')
