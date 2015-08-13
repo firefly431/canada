@@ -56,7 +56,7 @@ Example:
     push ebp
     mov ebp, esp
     ; we can access the nth (1-based) argument with
-    ; word [ebp + 4 + 4 * n]
+    ; dword [ebp + 4 + 4 * n]
 
 ###To return from `myfunc`:
 
