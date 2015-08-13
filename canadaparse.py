@@ -91,7 +91,7 @@ class ArrayDeclaration(VariableType):
         FakeTuple.__init__(self, ('array_decl',
                                  [prim_type, length]))
     def __repr__(self):
-        return self.prim_type + '[' + str(self.length) + ']'
+        return self.prim_type + '[' + (str(self.length) if self.length else '') + ']'
 
 class ArrayLiteral(FakeTuple):
     def __init__(self, elements):
@@ -118,10 +118,16 @@ class Function(FakeTuple):
         self.par_list, self.statement = header_and_body
         FakeTuple.__init__(self, ('function', [self.type, self.name, ('par_list', self.par_list), self.statement]))
     def __repr__(self):
-        return repr(self.type) + ' ' + self.name + '(' + ','.join(map(repr, self.par_list)) + ') ' + repr(self.statement)
+        return repr(self.type) + ' ' + self.name + '(' + ', '.join(map(repr, self.par_list)) + ') ' + repr(self.statement)
 
 class BlockStatement(FakeTuple): pass
 class Statement(BlockStatement): pass
+
+class EmptyStatement(Statement):
+    def __init__(self):
+        FakeTuple.__init__(self, None)
+    def __repr__(self):
+        return ';'
 
 class IfStatement(Statement):
     def __init__(self, cond, stmt, else_c = None):
@@ -129,12 +135,16 @@ class IfStatement(Statement):
         self.statement = stmt
         self.else_clause = else_c
         FakeTuple.__init__(self, ('if_stmt', [cond, stmt] + ([else_c] if else_c else [])))
+    def __repr__(self):
+        return 'if (' + repr(self.condition) + ') ' + repr(self.statement) + (' else ' + repr(self.else_clause) if self.else_clause else '')
 
 class WhileLoop(Statement):
     def __init__(self, cond, stmt):
         self.condition = cond
         self.statement = stmt
         FakeTuple.__init__(self, ('if_stmt', [cond, stmt]))
+    def __repr__(self):
+        return 'while (' + repr(self.condition) + ') ' + repr(self.statement)
 
 class BreakStatement(Statement):
     def __init__(self):
@@ -171,7 +181,12 @@ class VariableDeclaration(BlockStatement):
         return repr(self.type) + ' ' + self.name
 
 def _indent(s):
-    return '    ' + repr(s)
+    # lol
+    if (isinstance(s, VariableDeclaration)):
+        s = repr(s) + ';'
+    else:
+        s = repr(s)
+    return '\n'.join('    ' + l for l in s.splitlines())
 
 class Block(Statement):
     def __init__(self, statements):
@@ -223,7 +238,7 @@ class BinaryExpression(Expression):
         self.rhs = rhs
         FakeTuple.__init__(self, ('bin_expr', [op, lhs, rhs]))
     def __repr__(self):
-        return '(' + repr(self.lhs) + ') ' + self.op + ' (' + repr(self.rhs) + ')'
+        return ('(' + repr(self.lhs) + ') ' if self.op != '=' else repr(self.lhs) + ' ') + self.op + ' (' + repr(self.rhs) + ')'
 
 class FunctionCall(Expression):
     def __init__(self, name, args):
@@ -412,7 +427,7 @@ def p_simple_stmt(p):
                 | expr_stmt
                 | ';'
     '''
-    if p.slice[0].type == ';': p[0] = None
+    if p.slice[1].type == ';': p[0] = EmptyStatement()
     else:
         p[0] = p[1]
 
@@ -578,7 +593,7 @@ def p_deref(p):
     deref : '*' '(' expr ')'
           | '~' '(' expr ')'
     '''
-    p[0] = Dereference(p[1], p[3] == '~')
+    p[0] = Dereference(p[3], p[1] == '~')
 
 # returns ('address', [*simple_lvalue])
 def p_address(p):

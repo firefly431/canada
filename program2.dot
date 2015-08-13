@@ -279,94 +279,100 @@ digraph parse_tree {
     node138 -> node140
     node138 -> node141
     node140 [label = "*", shape = "diamond"]
-    node141 [label = "*", shape = "diamond"]
+    node141 [label = "IDENT"]
+    node141 -> node142
+    node142 [label = "addr", shape = "diamond"]
     node139 [label = "bin_expr"]
-    node139 -> node142
     node139 -> node143
     node139 -> node144
-    node142 [label = "*", shape = "diamond"]
-    node143 [label = "deref"]
-    node143 -> node145
-    node143 -> node146
-    node145 [label = "*", shape = "diamond"]
-    node146 [label = "*", shape = "diamond"]
+    node139 -> node145
+    node143 [label = "*", shape = "diamond"]
     node144 [label = "deref"]
+    node144 -> node146
     node144 -> node147
-    node144 -> node148
-    node147 [label = "*", shape = "diamond"]
-    node148 [label = "*", shape = "diamond"]
+    node146 [label = "*", shape = "diamond"]
+    node147 [label = "IDENT"]
+    node147 -> node148
+    node148 [label = "addr", shape = "diamond"]
+    node145 [label = "deref"]
+    node145 -> node149
+    node145 -> node150
+    node149 [label = "*", shape = "diamond"]
+    node150 [label = "IDENT"]
+    node150 -> node151
+    node151 [label = "addr", shape = "diamond"]
     node136 [label = "return"]
     node9 [label = "function"]
-    node9 -> node149
-    node9 -> node150
-    node9 -> node151
     node9 -> node152
-    node149 [label = "void", shape = "diamond"]
-    node150 [label = "main", shape = "diamond"]
-    node151 [label = "par_list"]
-    node152 [label = "block"]
-    node152 -> node153
-    node152 -> node154
-    node152 -> node155
-    node152 -> node156
-    node152 -> node157
-    node153 [label = "var_decl"]
-    node153 -> node158
-    node153 -> node159
-    node158 [label = "PRIM_TYPE"]
-    node158 -> node160
-    node160 [label = "int", shape = "diamond"]
-    node159 [label = "a", shape = "diamond"]
-    node154 [label = "bin_expr"]
-    node154 -> node161
-    node154 -> node162
-    node154 -> node163
-    node161 [label = "=", shape = "diamond"]
-    node162 [label = "IDENT"]
-    node162 -> node164
-    node164 [label = "a", shape = "diamond"]
-    node163 [label = "INT_LIT"]
-    node163 -> node165
-    node165 [label = "8", shape = "diamond"]
-    node155 [label = "function_call"]
-    node155 -> node166
-    node155 -> node167
-    node166 [label = "square", shape = "diamond"]
-    node167 [label = "arg_list"]
-    node167 -> node168
-    node168 [label = "address"]
-    node168 -> node169
-    node169 [label = "IDENT"]
-    node169 -> node170
-    node170 [label = "a", shape = "diamond"]
-    node156 [label = "function_call"]
-    node156 -> node171
-    node156 -> node172
-    node171 [label = "square", shape = "diamond"]
-    node172 [label = "arg_list"]
+    node9 -> node153
+    node9 -> node154
+    node9 -> node155
+    node152 [label = "void", shape = "diamond"]
+    node153 [label = "main", shape = "diamond"]
+    node154 [label = "par_list"]
+    node155 [label = "block"]
+    node155 -> node156
+    node155 -> node157
+    node155 -> node158
+    node155 -> node159
+    node155 -> node160
+    node156 [label = "var_decl"]
+    node156 -> node161
+    node156 -> node162
+    node161 [label = "PRIM_TYPE"]
+    node161 -> node163
+    node163 [label = "int", shape = "diamond"]
+    node162 [label = "a", shape = "diamond"]
+    node157 [label = "bin_expr"]
+    node157 -> node164
+    node157 -> node165
+    node157 -> node166
+    node164 [label = "=", shape = "diamond"]
+    node165 [label = "IDENT"]
+    node165 -> node167
+    node167 [label = "a", shape = "diamond"]
+    node166 [label = "INT_LIT"]
+    node166 -> node168
+    node168 [label = "8", shape = "diamond"]
+    node158 [label = "function_call"]
+    node158 -> node169
+    node158 -> node170
+    node169 [label = "square", shape = "diamond"]
+    node170 [label = "arg_list"]
+    node170 -> node171
+    node171 [label = "address"]
+    node171 -> node172
+    node172 [label = "IDENT"]
     node172 -> node173
-    node173 [label = "address"]
-    node173 -> node174
-    node174 [label = "array_acc"]
-    node174 -> node175
-    node174 -> node176
-    node175 [label = "test_array", shape = "diamond"]
-    node176 [label = "INT_LIT"]
+    node173 [label = "a", shape = "diamond"]
+    node159 [label = "function_call"]
+    node159 -> node174
+    node159 -> node175
+    node174 [label = "square", shape = "diamond"]
+    node175 [label = "arg_list"]
+    node175 -> node176
+    node176 [label = "address"]
     node176 -> node177
-    node177 [label = "3", shape = "diamond"]
-    node157 [label = "if_stmt"]
-    node157 -> node178
-    node157 -> node179
-    node178 [label = "INT_LIT"]
-    node178 -> node180
-    node180 [label = "1", shape = "diamond"]
-    node179 [label = "if_stmt"]
-    node179 -> node181
-    node179 -> node182
-    node179 -> node183
+    node177 [label = "array_acc"]
+    node177 -> node178
+    node177 -> node179
+    node178 [label = "test_array", shape = "diamond"]
+    node179 [label = "INT_LIT"]
+    node179 -> node180
+    node180 [label = "3", shape = "diamond"]
+    node160 [label = "if_stmt"]
+    node160 -> node181
+    node160 -> node182
     node181 [label = "INT_LIT"]
-    node181 -> node184
-    node184 [label = "1", shape = "diamond"]
-    node182 [label = ";", shape = "diamond"]
-    node183 [label = ";", shape = "diamond"]
+    node181 -> node183
+    node183 [label = "1", shape = "diamond"]
+    node182 [label = "if_stmt"]
+    node182 -> node184
+    node182 -> node185
+    node182 -> node186
+    node184 [label = "INT_LIT"]
+    node184 -> node187
+    node187 [label = "1", shape = "diamond"]
+    node185 [label = ";", shape = "diamond"]
+    node186 [label = ";", shape = "diamond"]
 }
