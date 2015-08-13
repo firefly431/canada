@@ -132,7 +132,7 @@ class Function(FakeTuple):
         self.par_list, self.statement = header_and_body
         FakeTuple.__init__(self, ('function', [self.type, self.name, ('par_list', self.par_list), self.statement]))
     def __repr__(self):
-        return repr(self.type) + ' ' + self.name + '(' + ', '.join(map(repr, self.par_list)) + ') ' + repr(self.statement)
+        return repr(self.type) + ' ' + self.name + '(' + ', '.join(self.par_list) + ') ' + repr(self.statement)
 
 class BlockStatement(FakeTuple): pass
 class Statement(BlockStatement): pass
