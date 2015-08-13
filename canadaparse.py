@@ -122,6 +122,20 @@ class Function(FakeTuple):
 
 class BlockStatement(FakeTuple): pass
 class Statement(BlockStatement): pass
+
+class IfStatement(Statement):
+    def __init__(self, cond, stmt, else_c = None):
+        self.condition = cond
+        self.statement = stmt
+        self.else_clause = else_c
+        FakeTuple.__init__(self, ('if_stmt', [cond, stmt] + ([else_c] if else_c else [])))
+
+class WhileLoop(Statement):
+    def __init__(self, cond, stmt):
+        self.condition = cond
+        self.statement = stmt
+        FakeTuple.__init__(self, ('if_stmt', [cond, stmt])))
+
 class BreakStatement(Statement):
     def __init__(self):
         FakeTuple.__init__(self, ('break_stmt', []))
@@ -133,15 +147,15 @@ class ContinueStatement(Statement):
     def __repr__(self):
         return 'continue;'
 class ReturnStatement(Statement):
-    def __init__(self, expr = None, array = False):
+    def __init__(self, expr = None):
         """
         :type expr: Expression
         :type array: bool
         """
-        FakeTuple.__init__(self, ('return' + ('_arr' if array else ''), [expr] if expr else []))
+        FakeTuple.__init__(self, ('return', [expr] if expr else []))
     def __repr__(self):
         if not self.expr: return 'return;'
-        return 'return' + ('[]' if self.array else '') + ' ' + repr(self.expr)
+        return 'return ' + repr(self.expr) + ';'
 
 class VariableDeclaration(BlockStatement):
     def __init__(self, type, name):
@@ -409,14 +423,14 @@ def p_if_stmt(p):
     if_stmt : IF condition statement
             | IF condition statement ELSE statement
     '''
-    p[0] = (p.slice[0].type, p[2:4] + p[5:])
+    p[0] = IfStatement(p[2], p[3], p[5] if len(p) >= 6 else None)
 
 # returns ('while_loop', [*expr, *statement])
 def p_while_loop(p):
     '''
     while_loop : WHILE condition statement
     '''
-    p[0] = (p.slice[0].type, p[2:])
+    p[0] = WhileLoop(p[2], p[3])
 
 # forwards expr
 def p_condition(p):
@@ -445,14 +459,11 @@ def p_return_stmt(p):
     '''
     return_stmt : RETURN expr ';'
                 | RETURN ';'
-                | RETURN '[' ']' IDENT ';'
     '''
     if len(p) == 4:
         p[0] = ReturnStatement(p[2])
-    elif len(p) == 3:
+    else len(p) == 3:
         p[0] = ReturnStatement()
-    else:
-        p[0] = ReturnStatement(p[4], True)
 
 # forwards
 def p_expr_stmt(p):
