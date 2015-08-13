@@ -50,14 +50,12 @@ Example:
 
 1. Push `ebp`
 2. Set `ebp` to `esp` (which points to the `ebp` pushed above)
-3. Allocate local variables by subtracting from `esp`
 
 Example:
 
     push ebp
     mov ebp, esp
-    sub esp, 12 ; 3 4-byte local variables
-    ; we can access the nth argument with
+    ; we can access the nth (1-based) argument with
     ; word [ebp + 4 + 4 * n]
 
 ###To return from `myfunc`:
@@ -76,6 +74,28 @@ Example:
     mov esp, ebp
     pop ebp
     pop ebx
-    add 12, esp
+    add esp, 12
     push eax
     jmp ebx
+
+Blocks
+------
+
+Local variables are allocated at the start of a block
+by subtracting the size of the variables in bytes to `esp`.
+At the end of a block, the variables are deallocated
+by adding to `esp` (at the end of a function block,
+all variables are deallocated by simply setting
+`esp` to `ebp`).
+
+Example (while loop):
+
+    .while1: sub esp, 12 ; 3 4-byte local variables
+    ...
+    ; continue
+    jmp .while1
+    ...
+    ; break
+    jmp .endwhile1
+    ...
+    .endwhile1: add esp, 12
