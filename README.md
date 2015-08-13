@@ -24,5 +24,5 @@ Dependencies
 TODO
 ----
 
-Parser all done!
+Implement function generation for code generator
 
