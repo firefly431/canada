@@ -85,7 +85,7 @@ class CodeGenerator:
     def label(self, label):
         if not label: return
         if self._label:
-            self.write(label=self._label)
+            self.write()
         self._label = label
     def write(self, inst = None, code = None, label=None, comment=None):
         """

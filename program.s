@@ -79,3 +79,6 @@
                 jmp     ebx
                 SECTION .data
 num:            dw      5
+                GLOBAL ?@print_int
+                GLOBAL ?@main
+                GLOBAL num

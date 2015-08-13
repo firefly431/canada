@@ -56,7 +56,6 @@
 .if2:
 
 .ifelse2:
-.ifelse2:
 
 .ifelse1:       add     esp,4
                 push    0
