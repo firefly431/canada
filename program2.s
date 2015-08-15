@@ -59,7 +59,7 @@
 .return:        pop     eax
                 mov     esp,ebp
                 pop     ebp
-                add     esp,0
+                add     esp,8
                 jmp     ebx
                 SECTION .data
 test_array:     dw      1,2,3,4,53
@@ -72,3 +72,4 @@ b:              dw      1
 ??sl1:          db      '\r\n\t \\\\\\'
                 GLOBAL str
                 GLOBAL ?@my_func
+                GLOBAL ?@main

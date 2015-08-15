@@ -11,23 +11,30 @@ class StackEntry:
         """
         self.var = var
         self.addr = addr
-        self.next = addr - var.type.size()
     def value(self):
         return '[ebp' + ('+' + str(self.addr) if self.addr > 0 else str(self.addr)) + ']'
+    def __str__(self):
+        return '<' + repr(self.var) + ' at ' + self.value() + '>'
 
 class StackFrame:
     def __init__(self, parameters):
         if parameters is None: return
         self.stack = [StackEntry(VariableDeclaration(PrimitiveType('int'), p), 8 + 4 * i) for i, p in reversed(list(enumerate(parameters)))]
+        self.build_table()
+    def get_last(self):
+        "get last address on stack (not parameter)"
+        if self.stack and self.stack[-1].addr <= 0:
+            return self.stack[-1].addr
+        return 0
+    def build_table(self):
+        "rebuild variable table"
         self.table = {p.var.name: p for p in self.stack}
-        if self.stack:
-            self.stack[-1].next = -4
     def _extend(self, variables):
-        oldn = self.stack[-1].next if self.stack else -4
+        old = self.get_last()
         for v in variables:
-            self.stack.append(StackEntry(v, self.stack[-1].next if self.stack else -4))
-        ret = oldn - (self.stack[-1].next if self.stack else -4)
-        self.table = {p.var.name: p for p in self.stack}
+            self.stack.append(StackEntry(v, self.get_last() - v.type.size()))
+        ret = old - self.get_last()
+        self.build_table()
         assert ret == sum(v.type.size() for v in variables)
         return ret
     def extend(self, variables):
@@ -43,8 +50,8 @@ class StackFrame:
         last = self.stack[-1]
         if last.addr > 0:
             return 0
-        ret = -last.next - 4
-        assert ret == sum(a.var.type.size() for a in self.stack if a.addr > 0)
+        ret = -last.addr
+        assert ret == sum(a.var.type.size() for a in self.stack if a.addr < 0)
         return ret
     def __getitem__(self, key):
         return self.table[key]
@@ -259,6 +266,7 @@ class CodeGenerator:
         def __enter__(self):
             self.vardecs = [v for v in self.block.statements if isinstance(v, VariableDeclaration)]
             self.stack, self.bsize = self.stack.extend(self.vardecs)
+            assert isinstance(self.stack.size(), int) # make sure this works
             self.cg.write('sub', 'esp,' + str(self.bsize))
             return self
         def __exit__(self, *args):

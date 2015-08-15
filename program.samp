@@ -43,7 +43,7 @@ void print_int(n) {
     $write(1, &buffer[i + 1], 9 - i);
 }
 
-void main() {
+void main(argc, argv) {
     int i;
     int r;
     r = 1;

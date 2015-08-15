@@ -32,7 +32,7 @@ void square(addr) {
     return;
 }
 
-void main() {
+void main(argc, argv) {
     int a;
     a = 8;
     square(&a);

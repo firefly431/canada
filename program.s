@@ -1,7 +1,7 @@
                 SECTION .text
 ?@print_int:    push    ebp
                 mov     ebp,esp
-                sub     esp,14
+                sub     esp,16
                 push    0
                 pop     eax
                 sub     esp,0
@@ -43,7 +43,7 @@
 .endwhile1:     add     esp,0
                 push    0
                 pop     eax
-                add     esp,14
+                add     esp,16
                 push    0
 .return:        pop     eax
                 mov     esp,ebp
@@ -75,10 +75,11 @@
 .return:        pop     eax
                 mov     esp,ebp
                 pop     ebp
-                add     esp,0
+                add     esp,8
                 jmp     ebx
                 SECTION .data
 num:            dw      5
                 GLOBAL ?@print_int
                 GLOBAL ?@main
                 GLOBAL num
+                GLOBAL ?@main
