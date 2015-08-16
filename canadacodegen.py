@@ -3,6 +3,11 @@ import canadaparse
 
 from canadaparse import Program, GlobalDeclaration, GlobalVariable, VariableType, PrimitiveType, Void, ArrayDeclaration, ArrayLiteral, Function, BlockStatement, Statement, EmptyStatement, IfStatement, WhileLoop, BreakStatement, ContinueStatement, ReturnStatement, VariableDeclaration, Block, Expression, ExpressionStatement, Literal, BinaryExpression, FunctionCall, LValue, SimpleLValue, Identifier, Dereference, Address, ArrayAccess, Negate, Export
 
+class ChangeThisNameError(Exception):
+    def __init__(self, message, source):
+        super().__init__(self, message)
+        self.source = source
+
 class StackEntry:
     def __init__(self, var, addr):
         """
@@ -86,7 +91,7 @@ class CodeGenerator:
         self.variables = []
         self.exports = []
         self._label = None
-    def warn(self, warning):
+    def warn(self, message, source):
         import sys
         sys.stderr.write('WARNING: ' + warning + '\n')
     def label(self, label):
@@ -168,20 +173,20 @@ class CodeGenerator:
         else:
             if v.type == 'INT_LIT':
                 if v.value > 255:
-                    raise SyntaxError("%d too big to fit in char" %
-                                      v.value)
+                    raise ChangeThisNameError("%d too big to fit in char" %
+                                      v.value, v)
                 return v.value
             elif v.type == 'CHAR_LIT':
                 return ord(v.value)
             else:
-                raise SyntaxError("String literal cannot be a char")
+                raise ChangeThisNameError("String literal cannot be a char", v)
     def generate_variable(self, v):
         """
         Generate the instructions for a variable
         :type v: GlobalVariable
         """
         if v.name == '_start':
-            raise SyntaxError('Reserved name')
+            raise ChangeThisNameError('Reserved name', v)
         self.gvars[v.name] = v
         prim_type = v.var_type if isinstance(v.var_type, PrimitiveType) else v.var_type.prim_type
         dd = 'db' if prim_type == 'char' else 'dw'
@@ -194,18 +199,18 @@ class CodeGenerator:
                         arr_size = lit_len
                         v.var_type.length = lit_len
                     if lit_len != arr_size:
-                        raise SyntaxError("String literal wrong "
-                                          "size")
+                        raise ChangeThisNameError("String literal wrong "
+                                          "size", v)
                     self.write('db', "'" + v.value.value + "'", label=v.name)
                 else:
-                    raise SyntaxError("Array not initialized with "
-                                      "array literal")
+                    raise ChangeThisNameError("Array not initialized with "
+                                      "array literal", v)
             else:
                 if not arr_size:
                     arr_size = len(v.value.elements)
                     v.var_type.length = arr_size
                 if len(v.value.elements) != arr_size:
-                    raise SyntaxError("Array literal wrong size")
+                    raise ChangeThisNameError("Array literal wrong size", v)
                 self.write(dd, ','.join(map(str, map(
                     functools.partial(self.value, prim_type), v.value.elements))),
                     label=v.name)
@@ -340,20 +345,18 @@ class CodeGenerator:
                 self.label(l_end)
         elif isinstance(stmt, BreakStatement):
             if not blabel:
-                raise SyntaxError("Nowhere to break")
+                raise ChangeThisNameError("Nowhere to break", stmt)
             self.write('jmp', blabel)
         elif isinstance(stmt, ContinueStatement):
             if not clabel:
-                raise SyntaxError("Nowhere to continue")
+                raise ChangeThisNameError("Nowhere to continue", stmt)
             self.write('jmp', clabel)
         elif isinstance(stmt, ReturnStatement):
-            a = ReturnStatement()
             if stmt.expr is not None:
                 self.push_expr(stmt.expr)
             self.write('jmp', '.return')
         elif isinstance(stmt, ExpressionStatement):
-            self.push_expr(stmt.expr)
-            self.write('pop', 'eax')
+            self.push_expr(stmt.expr, False)
         elif isinstance(stmt, EmptyStatement):
             pass
         else:
@@ -389,11 +392,22 @@ class CodeGenerator:
         self.write('pop', 'eax')
         self.write('cmp', 'eax,0')
         return 'jnz', 'jz'
-    def push_expr(self, expr):
+    def push_expr(self, expr, push = False):
         """
         :type expr: Expression
         """
-        self.write('push', '0')
+        if isinstance(expr, FunctionCall):
+            fname = expr.name
+            try:
+                func = self.gfuncs[fname]
+            except KeyError:
+                raise ChangeThisNameError("Function does not exist: " + fname, expr)
+            if len(func.par_list) != len(expr.args):
+                raise ChangeThisNameError("Incorrect number of arguments to " + repr(func), expr)
+            if isinstance(func.type, Void) and push:
+                raise ChangeThisNameError(repr(func) + " does not return a value", expr)
+        if push:
+            self.write('push', '0')
     def generate_exports(self):
         for exp in self.exports:
             self.write('GLOBAL ' + ('?@' if exp.function else '') + exp.name)
