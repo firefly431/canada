@@ -252,6 +252,7 @@ class CodeGenerator:
         self.write('pop', 'eax')
         self.write('mov', 'esp,ebp')
         self.write('pop','ebp')
+        self.write('pop','ebx')
         self.write('add', 'esp,' + str(4 * len(f.par_list)))
         if not isinstance(f.type, Void):
             self.write('push', 'eax')
