@@ -143,15 +143,15 @@ class CodeGenerator:
         self.functions = [d for d in ast.decls if isinstance(d, Function)]
         self.exports = [d for d in ast.decls if isinstance(d, Export)]
         assert all(sum((x in self.variables, x in self.functions, x in self.exports)) == 1 for x in ast.decls)
+        self.generate_exports()
         self.generate_text()
         self.generate_data()
-        self.generate_exports()
+        for exp in self.exports:
+            print(repr(exp))
         for name, var in sorted(self.gvars.items()):
             print(repr(var))
         for name, func in sorted(self.gfuncs.items()):
             print(repr(func))
-        for exp in self.exports:
-            print(repr(exp))
     def string(self, s):
         i = self.stringc
         self.stringc += 1
