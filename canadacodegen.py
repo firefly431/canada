@@ -2,6 +2,7 @@ import functools
 import canadaparse
 
 from canadaparse import Program, GlobalDeclaration, GlobalVariable, VariableType, PrimitiveType, Void, ArrayDeclaration, ArrayLiteral, Function, BlockStatement, Statement, EmptyStatement, IfStatement, WhileLoop, BreakStatement, ContinueStatement, ReturnStatement, VariableDeclaration, Block, Expression, ExpressionStatement, Literal, BinaryExpression, FunctionCall, LValue, SimpleLValue, Identifier, Dereference, Address, ArrayAccess, Negate, Export
+from syscall import syscalls
 
 class ChangeThisNameError(Exception):
     def __init__(self, message, source):
@@ -398,14 +399,20 @@ class CodeGenerator:
         """
         if isinstance(expr, FunctionCall):
             fname = expr.name
-            try:
-                func = self.gfuncs[fname]
-            except KeyError:
-                raise ChangeThisNameError("Function does not exist: " + fname, expr)
-            if len(func.par_list) != len(expr.args):
-                raise ChangeThisNameError("Incorrect number of arguments to " + repr(func), expr)
-            if isinstance(func.type, Void) and push:
-                raise ChangeThisNameError(repr(func) + " does not return a value", expr)
+            if fname.startswith('$'):
+                try:
+                    sysc = syscalls[fname]
+                except KeyError:
+                    raise ChangeThisNameError("Unknown syscall: " + fname, expr)
+            else:
+                try:
+                    func = self.gfuncs[fname]
+                except KeyError:
+                    raise ChangeThisNameError("Function does not exist: " + fname, expr)
+                if len(func.par_list) != len(expr.args):
+                    raise ChangeThisNameError("Incorrect number of arguments to " + repr(func), expr)
+                if isinstance(func.type, Void) and push:
+                    raise ChangeThisNameError(repr(func) + " does not return a value", expr)
         if push:
             self.write('push', '0')
     def generate_exports(self):
