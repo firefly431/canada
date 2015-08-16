@@ -4,6 +4,10 @@ import canadaparse
 from canadaparse import Program, GlobalDeclaration, GlobalVariable, VariableType, PrimitiveType, Void, ArrayDeclaration, ArrayLiteral, Function, BlockStatement, Statement, EmptyStatement, IfStatement, WhileLoop, BreakStatement, ContinueStatement, ReturnStatement, VariableDeclaration, Block, Expression, ExpressionStatement, Literal, BinaryExpression, FunctionCall, LValue, SimpleLValue, Identifier, Dereference, Address, ArrayAccess, Negate, Export
 from syscall import syscalls
 
+import os
+
+int_to_char = {'eax': 'al', 'ebx': 'bl', 'ecx': 'cl', 'edx': 'dl'}
+
 class ChangeThisNameError(Exception):
     def __init__(self, message, source):
         super().__init__(self, message)
@@ -17,10 +21,25 @@ class StackEntry:
         """
         self.var = var
         self.addr = addr
-    def value(self):
-        return '[ebp' + ('+' + str(self.addr) if self.addr > 0 else str(self.addr)) + ']'
+    def value(self, offset=0):
+        if isinstance(offset, str):
+            return self.value()[:-1] + '+' + offset + ']'
+        offset += self.addr
+        return '[ebp' + ('+' + str(offset) if offset > 0 else str(offset)) + ']'
     def __str__(self):
         return '<' + repr(self.var) + ' at ' + self.value() + '>'
+
+class GlobalStackEntry(StackEntry):
+    def __init__(self, var):
+        """
+        :type var: GlobalVariable
+        """
+        super().__init__(VariableDeclaration(var.var_type, var.name), var.name)
+        self.name = var.name
+    def value(self, offset=0):
+        if isinstance(offset, str):
+            return '[' + self.name + '+' + offset + ']'
+        return '[' + self.name + ('+' + str(offset) if offset > 0 else str(offset)) + ']'
 
 class StackFrame:
     def __init__(self, parameters):
@@ -78,7 +97,7 @@ def generate(fn, out=None, margin=16, iwidth=8, width=40):
                       width=width).generate(ast)
 
 class CodeGenerator:
-    def __init__(self, out, margin=16, iwidth=8, width=40):
+    def __init__(self, out, margin=16, iwidth=8, width=40, linux=None):
         self.out = out
         self.margin = margin
         self.iwidth = iwidth
@@ -92,9 +111,24 @@ class CodeGenerator:
         self.variables = []
         self.exports = []
         self._label = None
+        if linux is not None:
+            self.linux = linux
+        else:
+            # autodetect
+            import os
+            sysname = os.uname()[0]
+            if sysname == 'Linux':
+                self.linux = True
+            elif sysname == 'FreeBSD':
+                self.linux = False
+            elif sysname == 'Darwin':
+                self.linux = False
+            else:
+                self.linux = False
+                raise Exception("Unknown uname: " + sysname)
     def warn(self, message, source):
         import sys
-        sys.stderr.write('WARNING: ' + warning + '\n')
+        sys.stderr.write('WARNING: ' + message + '\n')
     def label(self, label):
         if not label: return
         if self._label:
@@ -313,7 +347,7 @@ class CodeGenerator:
             l_else = '.ifelse' + str(self.ifc)
             self.ifc += 1
             self.label(l_if)
-            _, jf = self.generate_condition(stmt.condition)
+            _, jf = self.generate_condition(stmt.condition, stack)
             self.write(jf, l_else)
             self.generate_statement(stmt.statement, stack, False, clabel, blabel)
             self.label(l_else)
@@ -326,21 +360,21 @@ class CodeGenerator:
             if isinstance(stmt.statement, Block):
                 with CodeGenerator.BlockWrapper(self, stmt.statement, stack) as bw:
                     self.label(l_begin)
-                    _, jf = self.generate_condition(stmt.condition)
+                    _, jf = self.generate_condition(stmt.condition, bw.stack)
                     self.write(jf, l_end)
                     self.generate_block_body(bw, l_begin, l_end)
                     self.write('jmp', l_begin)
                     self.label(l_end)
             elif isinstance(stmt.statement, BreakStatement):
-                self.generate_statement(ExpressionStatement(stmt.condition))
+                self.generate_statement(ExpressionStatement(stmt.condition), stack)
             elif isinstance(stmt.statement, ContinueStatement) or isinstance(stmt.statement, EmptyStatement):
                 # busy loop
                 self.label(l_begin)
-                jt, _ = self.generate_condition(stmt.condition)
+                jt, _ = self.generate_condition(stmt.condition, stack)
                 self.write(jt, l_begin)
             else:
                 self.label(l_begin)
-                _, jf = self.generate_condition(stmt.condition)
+                _, jf = self.generate_condition(stmt.condition, stack)
                 self.write(jf, l_end)
                 self.generate_block_body(bw, l_begin, l_end)
                 self.write('jmp', l_begin)
@@ -355,15 +389,15 @@ class CodeGenerator:
             self.write('jmp', clabel)
         elif isinstance(stmt, ReturnStatement):
             if stmt.expr is not None:
-                self.push_expr(stmt.expr)
+                self.push_expr(stmt.expr, stack)
             self.write('jmp', '.return')
         elif isinstance(stmt, ExpressionStatement):
-            self.push_expr(stmt.expr, False)
+            self.push_expr(stmt.expr, stack, False)
         elif isinstance(stmt, EmptyStatement):
             pass
         else:
             assert False
-    def generate_condition(self, cond):
+    def generate_condition(self, cond, stack):
         """
         :type cond: Expression
 
@@ -372,7 +406,7 @@ class CodeGenerator:
         """
         # some easy conditions
         if isinstance(cond, Negate):
-            a, b = self.generate_condition(cond.expr)
+            a, b = self.generate_condition(cond.expr, stack)
             return b, a
         if isinstance(cond, Literal):
             if cond.type == 'INT_LIT':
@@ -390,13 +424,65 @@ class CodeGenerator:
         if isinstance(cond, Address):
             return 'jmp', None
         # otherwise use a cmp
-        self.push_expr(cond)
+        self.push_expr(cond, stack)
         self.write('pop', 'eax')
         self.write('cmp', 'eax,0')
         return 'jnz', 'jz'
-    def push_expr(self, expr, push = False):
+    def reg_expr(self, expr, reg, stack):
         """
         :type expr: Expression
+        :type reg: str
+        :type stack: StackFrame
+
+        Warning: may clobber every register but reg
+        """
+        if isinstance(expr, Literal):
+            self.write('mov', reg + ',' + self.value('int', expr))
+        elif isinstance(expr, Address):
+            if isinstance(expr.lvalue, SimpleLValue):
+                ident = None
+                offset = 0
+                if isinstance(expr.lvalue, Identifier):
+                    ident = expr.lvalue.name
+                else:
+                    assert isinstance(expr.lvalue, ArrayAccess)
+                    ident = expr.lvalue.array
+                    if isinstance(expr.lvalue.index, Literal):
+                        # yay
+                        if expr.lvalue.index.type == 'INT_LIT':
+                            offset = expr.lvalue.index.value
+                        elif expr.lvalue.index.type == 'CHAR_LIT':
+                            offset = ord(expr.lvalue.index.value)
+                        else:
+                            assert expr.lvalue.index.type == 'STRING_LIT'
+                            # using a string as an array index
+                            # TECHNICALLY it's valid
+                            self.warn('WTF were you even trying to do', expr)
+                            offset = self.string(expr.lvalue.index.value)
+                    else:
+                        self.reg_expr(expr.lvalue.index, reg, stack)
+                        offset = reg
+                self.write('lea', reg + ',' + self.lookup(stack, expr.lvalue.name).value(offset))
+            else:
+                assert isinstance(expr.lvalue, Dereference)
+                rreg = reg
+                if expr.lvalue.char == '~' and reg not in int_to_char:
+                    rreg = 'eax'
+                    self.write('push', rreg)
+                self.reg_expr(expr.lvalue.expr, rreg, stack)
+                if expr.lvalue.char == '~':
+                    self.write('movsx', rreg + ',' + int_to_char[rreg])
+                if rreg != reg:
+                    self.write('mov', reg + ',' + rreg)
+                    self.write('pop', rreg)
+        else:
+            self.push_expr(expr, stack, stack)
+            self.write('pop', reg)
+    def push_expr(self, expr, stack, push = True):
+        """
+        :type expr: Expression
+
+        Warning: may clobber every register
         """
         if isinstance(expr, FunctionCall):
             fname = expr.name
@@ -405,6 +491,27 @@ class CodeGenerator:
                     sysc = syscalls[fname]
                 except KeyError:
                     raise ChangeThisNameError("Unknown syscall: " + fname, expr)
+                # on linux, prevent clobbering
+                for arg in reversed(expr.args):
+                    self.push_expr(arg, stack)
+                if self.linux:
+                    if len(expr.args) == 6:
+                        self.write('push', 'ebp')
+                    if len(expr.args) > 6:
+                        raise ChangeThisNameError("More than 6 arguments to linux syscall", expr)
+                    for arg, reg in zip(expr.args, ('ebx', 'ecx', 'edx', 'esi', 'edi', 'ebp')):
+                        self.write('pop', reg)
+                else:
+                    self.write('push', 'dword 0')
+                self.write('mov', 'eax,' + str(sysc), comment=fname)
+                self.write('int', '80h')
+                if self.linux:
+                    if len(expr.args) == 6:
+                        self.write('pop', 'ebp')
+                else:
+                    self.write('add', 'esp,' + str(4 * len(expr.args) + 4))
+                if push:
+                    self.write('push', 'eax')
             else:
                 try:
                     func = self.gfuncs[fname]
@@ -414,12 +521,23 @@ class CodeGenerator:
                     raise ChangeThisNameError("Incorrect number of arguments to " + repr(func), expr)
                 if isinstance(func.type, Void) and push:
                     raise ChangeThisNameError(repr(func) + " does not return a value", expr)
-        if push:
-            self.write('push', '0')
+                for arg in reversed(expr.args):
+                    self.push_expr(arg, stack)
+                self.write('call', '?@' + fname)
+                if not isinstance(func.type, Void) and not push:
+                    self.write('add', 'esp,4')
+        else:
+            if push:
+                self.write('push', '0')
     def generate_exports(self):
         for exp in self.exports:
             self.write('GLOBAL ' + ('?@' if exp.function else '') + exp.name)
         self.write('GLOBAL ?@main')
+    def lookup(self, stack, name):
+        if name in stack:
+            return stack[name]
+        if name in self.gvars:
+            return GlobalStackEntry(self.gvars[name])
 
 if __name__ == '__main__':
     import sys
