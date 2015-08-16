@@ -4,3 +4,4 @@ __pycache__
 *.pyc
 parsetab.py
 parser.out
+*.o
