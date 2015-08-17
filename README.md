@@ -24,5 +24,5 @@ Dependencies
 TODO
 ----
 
-Implement `push_expr`
+Implement binary operations in `reg_expr`
 

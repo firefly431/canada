@@ -541,8 +541,9 @@ class CodeGenerator:
                 if not isinstance(func.type, Void) and not push:
                     self.write('add', 'esp,4')
         else:
+            self.reg_expr(expr, 'eax', stack)
             if push:
-                self.write('push', '0')
+                self.write('push', 'eax')
     def generate_exports(self):
         for exp in self.exports:
             self.write('GLOBAL ' + ('?@' if exp.function else '') + exp.name)
