@@ -67,7 +67,7 @@ def t_IDENT(t):
 
 t_SYSCALL = '|'.join(map(re.escape, syscalls.keys()))
 t_SHIFT = r'<<|>>>?' # >>> is unsigned
-t_RELOP = r'[<>]=?|[=!]='
+t_RELOP = r'[<>]\|?=?|[=!]=' # >|, <|, >|=, <|= is unsigned
 t_EQ = r'='
 t_AND = r'&&'
 t_OR = r'\|\|'
