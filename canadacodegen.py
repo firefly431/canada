@@ -347,8 +347,7 @@ class CodeGenerator:
             l_else = '.ifelse' + str(self.ifc)
             self.ifc += 1
             self.label(l_if)
-            _, jf = self.generate_condition(stmt.condition, stack)
-            self.write(jf, l_else)
+            self.generate_condition(stmt.condition, stack, false=l_else)
             self.generate_statement(stmt.statement, stack, False, clabel, blabel)
             self.label(l_else)
             if stmt.else_clause:
@@ -360,8 +359,7 @@ class CodeGenerator:
             if isinstance(stmt.statement, Block):
                 with CodeGenerator.BlockWrapper(self, stmt.statement, stack) as bw:
                     self.label(l_begin)
-                    _, jf = self.generate_condition(stmt.condition, bw.stack)
-                    self.write(jf, l_end)
+                    self.generate_condition(stmt.condition, bw.stack, false=l_end)
                     self.generate_block_body(bw, l_begin, l_end)
                     self.write('jmp', l_begin)
                     self.label(l_end)
@@ -370,12 +368,10 @@ class CodeGenerator:
             elif isinstance(stmt.statement, ContinueStatement) or isinstance(stmt.statement, EmptyStatement):
                 # busy loop
                 self.label(l_begin)
-                jt, _ = self.generate_condition(stmt.condition, stack)
-                self.write(jt, l_begin)
+                self.generate_condition(stmt.condition, stack, true=l_begin)
             else:
                 self.label(l_begin)
-                _, jf = self.generate_condition(stmt.condition, stack)
-                self.write(jf, l_end)
+                self.generate_condition(stmt.condition, stack, false=l_end)
                 self.generate_block_body(bw, l_begin, l_end)
                 self.write('jmp', l_begin)
                 self.label(l_end)
@@ -397,7 +393,7 @@ class CodeGenerator:
             pass
         else:
             assert False
-    def generate_condition(self, cond, stack):
+    def generate_condition(self, cond, stack, true=None, false=None):
         """
         :type cond: Expression
 
@@ -406,28 +402,35 @@ class CodeGenerator:
         """
         # some easy conditions
         if isinstance(cond, Negate):
-            a, b = self.generate_condition(cond.expr, stack)
-            return b, a
+            return self.generate_condition(cond.expr, stack, false, true)
         if isinstance(cond, Literal):
             if cond.type == 'INT_LIT':
                 if cond.value == 0:
-                    return None, 'jmp'
+                    if false:
+                        self.write('jmp', false)
                 else:
-                    return 'jmp', None
+                    if true:
+                        self.write('jmp', true)
             elif cond.type == 'CHAR_LIT':
                 if cond.value == '\0':
-                    return None, 'jmp'
+                    if false:
+                        self.write('jmp', false)
                 else:
-                    return 'jmp', None
+                    if true:
+                        self.write('jmp', true)
             else:
-                return 'jmp', None
+                if true:
+                    self.write('jmp', true)
         if isinstance(cond, Address):
-            return 'jmp', None
+            if true:
+                self.write('jmp', true)
         # otherwise use a cmp
-        self.push_expr(cond, stack)
-        self.write('pop', 'eax')
+        self.reg_expr(cond, 'eax', stack)
         self.write('cmp', 'eax,0')
-        return 'jnz', 'jz'
+        if true:
+            self.write('jnz', true)
+        if false:
+            self.write('jz', false)
     def reg_expr(self, expr, reg, stack):
         """
         :type expr: Expression
