@@ -465,16 +465,8 @@ class CodeGenerator:
                 self.write('lea', reg + ',' + self.lookup(stack, expr.lvalue.name).value(offset))
             else:
                 assert isinstance(expr.lvalue, Dereference)
-                rreg = reg
-                if expr.lvalue.char == '~' and reg not in int_to_char:
-                    rreg = 'eax'
-                    self.write('push', rreg)
-                self.reg_expr(expr.lvalue.expr, rreg, stack)
-                if expr.lvalue.char == '~':
-                    self.write('movsx', rreg + ',' + int_to_char[rreg])
-                if rreg != reg:
-                    self.write('mov', reg + ',' + rreg)
-                    self.write('pop', rreg)
+                self.warn('Will not attempt to dereference', expr)
+                self.reg_expr(expr.lvalue.expr,rreg, stack)
         else:
             self.push_expr(expr, stack, stack)
             self.write('pop', reg)
