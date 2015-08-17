@@ -493,7 +493,50 @@ class CodeGenerator:
             breg = int_to_char.get(reg, 'al')
             self.write(('sete', 'setne')[a], breg)
             self.write('movzx', reg + ',' + breg)
+        elif isinstance(expr, BinaryExpression):
+            # lhs, op, rhs
+            ireg = 'eax' if reg != 'eax' else 'ebx'
+            if expr.op == '*': # signed
+                self.push_expr(expr.lhs, stack)
+                self.reg_expr(expr.rhs, ireg)
+                self.write('pop', reg)
+                self.write('imul', reg + ',' + ireg)
+            elif expr.op == '~': # unsigned
+                self.push_expr(expr.lhs, stack)
+                self.reg_expr(expr.rhs, 'ebx')
+                self.write('pop', 'eax')
+                self.write('mul', 'ebx')
+                self.write('mov', reg + ',' + 'eax')
+            elif expr.op in '/\\%@':
+                self.push_expr(expr.lhs, stack)
+                self.reg_expr(expr.rhs, 'ebx')
+                self.write('pop', 'eax')
+                self.write('cdq')
+                self.write('idiv' if expr.op in '/%' else 'div', 'ebx')
+                self.write('mov', reg + ',' + ('eax' if expr.op in '/\\' else 'edx'))
+            elif expr.op in '+-':
+                self.push_expr(expr.lhs, stack)
+                self.reg_expr(expr.rhs, ireg)
+                self.write('pop', reg)
+                self.write('add' if expr.op == '+' else 'sub', reg + ',' + ireg)
+            elif expr.op in ('<<', '>>', '>>>'):
+                inst = 'sar' if expr.op == '>>>' else ('shl' if expr.op == '<<' else 'shr')
+                self.push_expr(expr.lhs, stack)
+                self.reg_expr(expr.rhs, ireg)
+                self.write('pop', reg)
+                self.write(inst, reg + ',' + ireg)
+            elif expr.op in ('<=', '>=', '<', '>', '==', '!='):
+                pass
+            elif expr.op in '&|^':
+                pass
+            elif expr.op in ('&&', '||'):
+                pass
+            else:
+                assert expr.op == '='
+                assert isinstance(expr.lhs, LValue)
+                pass
         else:
+            assert isinstance(expr, FunctionCall)
             self.push_expr(expr, stack, stack)
             self.write('pop', reg)
     def push_expr(self, expr, stack, push = True):
