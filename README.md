@@ -24,7 +24,7 @@ Dependencies
 TODO
 ----
 
-* Implement binary operations in `reg_expr`
+* Implement short-circuiting in conditional
 * Optimize conditionals
 * Unary operators (`~`, `-`)
 
