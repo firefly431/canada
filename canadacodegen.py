@@ -483,6 +483,12 @@ class CodeGenerator:
                 assert isinstance(expr.lvalue, Dereference)
                 self.reg_expr(expr.expr, reg, stack)
                 self.write('mov', reg + ',[' + reg + ']')
+        elif isinstance(expr, Negate):
+            self.reg_expr(expr.expr, reg, stack)
+            self.write('cmp', reg + ',0')
+            breg = int_to_char.get(reg, 'al')
+            self.write('sete', breg)
+            self.write('movzx', reg + ',' + breg)
         else:
             self.push_expr(expr, stack, stack)
             self.write('pop', reg)
