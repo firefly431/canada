@@ -484,10 +484,14 @@ class CodeGenerator:
                 self.reg_expr(expr.expr, reg, stack)
                 self.write('mov', reg + ',[' + reg + ']')
         elif isinstance(expr, Negate):
+            a = 0
+            while isinstance(expr.expr, Negate):
+                expr = expr.expr
+                a = 1 - a
             self.reg_expr(expr.expr, reg, stack)
             self.write('cmp', reg + ',0')
             breg = int_to_char.get(reg, 'al')
-            self.write('sete', breg)
+            self.write(('sete', 'setne')[a], breg)
             self.write('movzx', reg + ',' + breg)
         else:
             self.push_expr(expr, stack, stack)
