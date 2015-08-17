@@ -608,6 +608,8 @@ class CodeGenerator:
                 self.write('call', '?@' + fname)
                 if not isinstance(func.type, Void) and not push:
                     self.write('add', 'esp,4')
+        elif isinstance(expr, Literal):
+            self.write('push', self.value('int', self.expr))
         else:
             self.reg_expr(expr, 'eax', stack)
             if push:
