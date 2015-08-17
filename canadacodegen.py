@@ -6,7 +6,21 @@ from syscall import syscalls
 
 import os
 
+# dword to byte
 int_to_char = {'eax': 'al', 'ebx': 'bl', 'ecx': 'cl', 'edx': 'dl'}
+# j_ and set_
+rel_ops = {
+    '>': 'g',
+    '<': 'l',
+    '>=': 'ge',
+    '<=': 'le',
+    '>|': 'a',
+    '>|=': 'ae',
+    '<|': 'b',
+    '<|=', 'be',
+    '==': 'e',
+    '!=': 'ne',
+}
 
 class ChangeThisNameError(Exception):
     def __init__(self, message, source):
@@ -515,12 +529,29 @@ class CodeGenerator:
                 self.reg_expr(expr.rhs, ireg)
                 self.write('pop', reg)
                 self.write(inst, reg + ',' + ireg)
-            elif expr.op in ('<=', '>=', '<', '>', '==', '!='):
-                pass
             elif expr.op in '&|^':
-                pass
+                inst = 'xor' if expr.op == '^' else ('and' if expr.op == '&' else 'or')
+                self.push_expr(expr.lhs, stack)
+                self.reg_expr(expr.rhs, ireg)
+                self.write('pop', reg)
+                self.write(inst, reg + ',' + ireg)
+            elif expr.op in ('<=', '>=', '<', '>', '==', '!='):
+                inst = 'set' + rel_ops[expr.op]
+                self.push_expr(expr.lhs, stack)
+                self.reg_expr(expr.rhs, ireg)
+                self.write('pop', reg)
+                self.write('cmp', reg + ',' + ireg)
+                self.write(inst, reg)
             elif expr.op in ('&&', '||'):
-                pass
+                # use a condition
+                l_false = '.l' + str(self.labelc)
+                l_end = '.l' + str(self.labelc + 1)
+                self.labelc += 2
+                self.generate_condition(expr, stack, None, l_false)
+                self.write('mov', reg +',1')
+                self.write('jmp', l_end)
+                self.write('mov', reg + ',0', l_false)
+                self.label(l_end)
             else:
                 assert expr.op == '='
                 assert isinstance(expr.lhs, LValue)
