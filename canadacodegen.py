@@ -431,6 +431,34 @@ class CodeGenerator:
             self.write('jnz', true)
         if false:
             self.write('jz', false)
+    def simple_lvalue(self, lvalue, reg, stack):
+        """
+        :type lvalue: SimpleLValue
+        reg is a temporary register
+        """
+        ident = None
+        offset = 0
+        if isinstance(lvalue, Identifier):
+            ident = lvalue.name
+        else:
+            assert isinstance(lvalue, ArrayAccess)
+            ident = lvalue.array
+            if isinstance(lvalue.index, Literal):
+                # yay
+                if lvalue.index.type == 'INT_LIT':
+                    offset = lvalue.index.value
+                elif lvalue.index.type == 'CHAR_LIT':
+                    offset = ord(lvalue.index.value)
+                else:
+                    assert lvalue.index.type == 'STRING_LIT'
+                    # using a string as an array index
+                    # TECHNICALLY it's valid
+                    self.warn('WTF were you even trying to do', lvalue)
+                    offset = self.string(lvalue.index.value)
+            else:
+                self.reg_expr(lvalue.index, reg, stack)
+                offset = reg
+        return self.lookup(stack, lvalue.name).value(offset)
     def reg_expr(self, expr, reg, stack):
         """
         :type expr: Expression
@@ -443,33 +471,18 @@ class CodeGenerator:
             self.write('mov', reg + ',' + self.value('int', expr))
         elif isinstance(expr, Address):
             if isinstance(expr.lvalue, SimpleLValue):
-                ident = None
-                offset = 0
-                if isinstance(expr.lvalue, Identifier):
-                    ident = expr.lvalue.name
-                else:
-                    assert isinstance(expr.lvalue, ArrayAccess)
-                    ident = expr.lvalue.array
-                    if isinstance(expr.lvalue.index, Literal):
-                        # yay
-                        if expr.lvalue.index.type == 'INT_LIT':
-                            offset = expr.lvalue.index.value
-                        elif expr.lvalue.index.type == 'CHAR_LIT':
-                            offset = ord(expr.lvalue.index.value)
-                        else:
-                            assert expr.lvalue.index.type == 'STRING_LIT'
-                            # using a string as an array index
-                            # TECHNICALLY it's valid
-                            self.warn('WTF were you even trying to do', expr)
-                            offset = self.string(expr.lvalue.index.value)
-                    else:
-                        self.reg_expr(expr.lvalue.index, reg, stack)
-                        offset = reg
-                self.write('lea', reg + ',' + self.lookup(stack, expr.lvalue.name).value(offset))
+                self.write('lea', reg + ',' + self.simple_lvalue(expr.lvalue, reg, stack))
             else:
                 assert isinstance(expr.lvalue, Dereference)
                 self.warn('Will not attempt to dereference', expr)
-                self.reg_expr(expr.lvalue.expr,rreg, stack)
+                self.reg_expr(expr.lvalue.expr, reg, stack)
+        elif isinstance(expr, LValue):
+            if isinstance(expr.lvalue, SimpleLValue):
+                self.write('mov', reg + ',' + self.simple_lvalue(expr, reg, stack))
+            else:
+                assert isinstance(expr.lvalue, Dereference)
+                self.reg_expr(expr.expr, reg, stack)
+                self.write('mov', reg + ',[' + reg + ']')
         else:
             self.push_expr(expr, stack, stack)
             self.write('pop', reg)
