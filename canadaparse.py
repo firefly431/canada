@@ -12,6 +12,7 @@ precedence = (
     ('left', 'IF'), # resolve dangling else
     ('left', 'ELSE'),
     ('right', 'EQ'),
+    ('left', 'AND', 'OR'),
     ('left', '&', '|', '^'),
     ('left', 'RELOP'),
     ('left', 'SHIFT'),
@@ -566,6 +567,8 @@ def p_bin_expr(p):
              | expr '&' expr
              | expr '|' expr
              | expr '^' expr
+             | expr AND expr
+             | expr OR expr
              | lvalue EQ expr
     '''
     p[0] = BinaryExpression(p[2], p[1], p[3])

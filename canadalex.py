@@ -30,6 +30,8 @@ tokens = [
     'SHIFT',
     'RELOP',
     'EQ',
+    'AND',
+    'OR',
 ] + list(map(str.upper, reserved))
 
 # @ is unsigned %
@@ -67,6 +69,8 @@ t_SYSCALL = '|'.join(map(re.escape, syscalls.keys()))
 t_SHIFT = r'<<|>>>?' # >>> is unsigned
 t_RELOP = r'[<>]=?|[=!]='
 t_EQ = r'='
+t_AND = r'&&'
+t_OR = r'\|\|'
 
 t_ignore_LINE_COMMENT = r'//.*'
 def t_BLOCK_COMMENT(t):
