@@ -36,10 +36,11 @@ class StackEntry:
         self.var = var
         self.addr = addr
     def value(self, offset=0):
+        oprefix = '4*' if self.var.type == 'int' else ''
         if isinstance(offset, str):
-            return self.value()[:-1] + '+' + offset + ']'
+            return self.value()[:-1] + '+' + oprefix + offset + ']'
         offset += self.addr
-        return '[ebp' + ('+' + str(offset) if offset > 0 else str(offset)) + ']'
+        return ('dword' if self.var.type == 'int' else 'byte') + '[ebp' + ('+' + oprefix + str(offset) if offset > 0 else '-' + oprefix + str(-offset)) + ']'
     def __str__(self):
         return '<' + repr(self.var) + ' at ' + self.value() + '>'
 
@@ -51,9 +52,10 @@ class GlobalStackEntry(StackEntry):
         super().__init__(VariableDeclaration(var.var_type, var.name), var.name)
         self.name = var.name
     def value(self, offset=0):
+        oprefix = '4*' if self.var.type == 'int' else ''
         if isinstance(offset, str):
-            return '[' + self.name + '+' + offset + ']'
-        return '[' + self.name + ('+' + str(offset) if offset > 0 else str(offset)) + ']'
+            return '[' + self.name + '+' + oprefix + offset + ']'
+        return ('dword' if self.var.type == 'int' else 'byte') + '[' + self.name + ('+' + oprefix + str(offset) if offset > 0 else '-' + oprefix + str(-offset)) + ']'
 
 class StackFrame:
     def __init__(self, parameters):
@@ -482,11 +484,20 @@ class CodeGenerator:
                 self.reg_expr(expr.lvalue.expr, reg, stack)
         elif isinstance(expr, LValue):
             if isinstance(expr.lvalue, SimpleLValue):
-                self.write('mov', reg + ',' + self.simple_lvalue(expr, reg, stack))
+                val = self.simple_lvalue(expr, reg, stack)
+                if val.startswith('byte'):
+                    self.write('mov', int_to_char[reg] + ',' + val)
+                    self.write('movsx', reg + ',' + int_to_char[reg])
+                else:
+                    self.write('mov', reg + ',' + val)
             else:
                 assert isinstance(expr.lvalue, Dereference)
                 self.reg_expr(expr.expr, reg, stack)
-                self.write('mov', reg + ',[' + reg + ']')
+                if expr.char == '*':
+                    self.write('mov', reg + ',[' + reg + ']')
+                else:
+                    self.write('mov', int_to_char[reg] + ',[' + reg + ']')
+                    self.write('movsx', reg + ',' + int_to_char[reg])
         elif isinstance(expr, Negate):
             a = 0
             while isinstance(expr.expr, Negate):
