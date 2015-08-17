@@ -26,4 +26,5 @@ TODO
 
 * Implement binary operations in `reg_expr`
 * Optimize conditionals
+* Unary operators (`~`, `-`)
 
