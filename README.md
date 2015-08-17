@@ -24,5 +24,7 @@ Dependencies
 TODO
 ----
 
-Implement binary operations in `reg_expr`
+* Add `and` and `or` tokens
+* Implement binary operations in `reg_expr`
+* Optimize conditionals
 
