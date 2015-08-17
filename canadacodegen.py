@@ -444,17 +444,7 @@ class CodeGenerator:
             assert isinstance(lvalue, ArrayAccess)
             ident = lvalue.array
             if isinstance(lvalue.index, Literal):
-                # yay
-                if lvalue.index.type == 'INT_LIT':
-                    offset = lvalue.index.value
-                elif lvalue.index.type == 'CHAR_LIT':
-                    offset = ord(lvalue.index.value)
-                else:
-                    assert lvalue.index.type == 'STRING_LIT'
-                    # using a string as an array index
-                    # TECHNICALLY it's valid
-                    self.warn('WTF were you even trying to do', lvalue)
-                    offset = self.string(lvalue.index.value)
+                offset = self.value('int', lvalue.index)
             else:
                 self.reg_expr(lvalue.index, reg, stack)
                 offset = reg
