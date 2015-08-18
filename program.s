@@ -6,6 +6,9 @@
 ?@print_int:    push    ebp
                 mov     ebp,esp
                 sub     esp,16
+                push    0
+                pop     eax
+                mov     dword[ebp-16],eax
                 sub     esp,0
 .while0:        mov     eax,dword[ebp-16]
                 push    eax
@@ -16,6 +19,18 @@
                 movzx   eax,al
                 cmp     eax,0
                 jz      .endwhile0
+                push    0
+                mov     ebx,dword[ebp-16]
+                pop     eax
+                mov     byte[ebp-12+ebx],eax
+                mov     eax,dword[ebp-16]
+                push    eax
+                mov     ebx,1
+                pop     eax
+                add     eax,ebx
+                push    eax
+                pop     eax
+                mov     dword[ebp-16],eax
                 jmp     .while0
 .endwhile0:     add     esp,0
 .if0:           mov     eax,dword[ebp+8]
@@ -34,7 +49,10 @@
                 mov     eax,4
                 int     80h
                 add     esp,16
-.ifelse0:       sub     esp,0
+.ifelse0:       push    9
+                pop     eax
+                mov     dword[ebp-16],eax
+                sub     esp,0
 .while1:        mov     eax,dword[ebp-16]
                 push    eax
                 mov     ebx,0
@@ -44,6 +62,35 @@
                 movzx   eax,al
                 cmp     eax,0
                 jz      .endwhile1
+                mov     eax,dword[ebp+8]
+                push    eax
+                mov     ebx,10
+                pop     eax
+                cdq
+                idiv    ebx
+                mov     eax,edx
+                push    eax
+                mov     ebx,dword[ebp-16]
+                pop     eax
+                mov     byte[ebp-12+ebx],eax
+                mov     eax,dword[ebp+8]
+                push    eax
+                mov     ebx,10
+                pop     eax
+                cdq
+                idiv    ebx
+                mov     eax,eax
+                push    eax
+                pop     eax
+                mov     dword[ebp+8],eax
+                mov     eax,dword[ebp-16]
+                push    eax
+                mov     ebx,1
+                pop     eax
+                sub     eax,ebx
+                push    eax
+                pop     eax
+                mov     dword[ebp-16],eax
 .if1:           mov     eax,dword[ebp+8]
                 push    eax
                 mov     ebx,0
@@ -84,6 +131,12 @@
 ?@main:         push    ebp
                 mov     ebp,esp
                 sub     esp,8
+                push    1
+                pop     eax
+                mov     dword[ebp-8],eax
+                push    1
+                pop     eax
+                mov     dword[ebp-4],eax
                 sub     esp,0
 .while2:        mov     eax,dword[ebp-4]
                 push    eax
@@ -94,6 +147,22 @@
                 movzx   eax,al
                 cmp     eax,0
                 jz      .endwhile2
+                mov     eax,dword[ebp-8]
+                push    eax
+                mov     ebx,dword[ebp-4]
+                pop     eax
+                imul    eax,ebx
+                push    eax
+                pop     eax
+                mov     dword[ebp-8],eax
+                mov     eax,dword[ebp-4]
+                push    eax
+                mov     ebx,1
+                pop     eax
+                add     eax,ebx
+                push    eax
+                pop     eax
+                mov     dword[ebp-4],eax
                 jmp     .while2
 .endwhile2:     add     esp,0
                 mov     eax,dword[ebp-8]

@@ -15,6 +15,17 @@
                 movzx   eax,al
                 cmp     eax,0
                 jz      .endwhile0
+                mov     eax,dword[ebp+8]
+                push    eax
+                mov     ebx,1
+                pop     eax
+                add     eax,ebx
+                push    eax
+                pop     eax
+                mov     dword[ebp+12],eax
+                push    eax
+                pop     eax
+                mov     dword[ebp+8],eax
 .if0:           mov     eax,dword[ebp+8]
                 push    eax
                 mov     ebx,3
@@ -36,6 +47,16 @@
                 jz      .ifelse0
                 jmp     .while0
 .ifelse0:       jmp     .endwhile0
+                mov     eax,dword[ebp+8]
+                push    eax
+                mov     ebx,dword[ebp+12]
+                pop     eax
+                cdq
+                div     ebx
+                mov     eax,eax
+                push    eax
+                pop     eax
+                mov     dword[ebp-4],eax
                 jmp     .while0
 .endwhile0:     add     esp,4
                 mov     eax,dword[ebp+8]
@@ -53,6 +74,20 @@
 ?@square:       push    ebp
                 mov     ebp,esp
                 sub     esp,0
+                mov     eax,dword[ebp+8]
+                mov     al,byte[eax]
+                movsx   eax,al
+                push    eax
+                mov     ebx,dword[ebp+8]
+                mov     bl,byte[ebx]
+                movsx   ebx,bl
+                pop     eax
+                imul    eax,ebx
+                push    eax
+                mov     ebx,dword[ebp+8]
+                pop     eax
+                movsx   eax,al
+                mov     byte[ebx],al
                 jmp     .return
                 add     esp,0
                 push    0
@@ -65,6 +100,9 @@
 ?@main:         push    ebp
                 mov     ebp,esp
                 sub     esp,4
+                push    8
+                pop     eax
+                mov     dword[ebp-4],eax
                 lea     eax,[ebp-4]
                 push    eax
                 call    ?@square

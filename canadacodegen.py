@@ -503,7 +503,7 @@ class CodeGenerator:
                 else:
                     self.write('mov', reg + ',' + val)
             else:
-                assert isinstance(expr.lvalue, Dereference)
+                assert isinstance(expr, Dereference)
                 self.reg_expr(expr.expr, reg, stack)
                 if expr.char == '*':
                     self.write('mov', reg + ',dword[' + reg + ']')
@@ -583,14 +583,14 @@ class CodeGenerator:
                 assert isinstance(expr.lhs, LValue)
                 self.push_expr(expr.rhs, stack)
                 if isinstance(expr.lhs, SimpleLValue):
-                    lval = self.simple_lvalue(expr.rhs, ireg, stack)
+                    lval = self.simple_lvalue(expr.lhs, ireg, stack)
                     self.write('pop', reg)
                     self.write('mov', lval + ',' + reg)
                 else:
                     assert isinstance(expr.lhs, Dereference)
                     self.reg_expr(expr.lhs.expr, ireg, stack)
                     self.write('pop', reg)
-                    if self.lhs.char == '*':
+                    if expr.lhs.char == '*':
                         self.write('mov', 'dword[' + ireg + '],' + reg)
                     else:
                         if reg not in int_to_char:
