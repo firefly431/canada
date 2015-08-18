@@ -3,12 +3,16 @@ extern int my_int;
 extern "C" int puts(str);
 
 void main(argc, argv) {
+    int a;
+    a = argc;
     print_int(my_int);
     puts("hello, world!");
     print_int(argc);
     while (argc > 0) {
         argc = argc - 1;
-        puts(argv[argc]);
-        //puts(*(argv + argc * 4));
+        // argv[argc] does not work
+        // because it'd be complicated
+        puts(*(argv + argc * 4));
     }
+    return a - 1; // exit code
 }
