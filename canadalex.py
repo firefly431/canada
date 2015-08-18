@@ -36,9 +36,9 @@ tokens = [
 
 # @ is unsigned %
 # \ is unsigned /
-# ~ is unsigned * (mul)
-# ~ is * for char (deref)
-literals = "()[]+-!*&|/^,%@~{};\\"
+# # is unsigned * (mul)
+# # is * for char (deref)
+literals = "()[]+-!~*&|/^,%@#{};\\"
 
 def t_INT_LIT(t):
     r'-?\d+'

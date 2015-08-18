@@ -17,8 +17,8 @@ precedence = (
     ('left', 'RELOP'),
     ('left', 'SHIFT'),
     ('left', '+', '-'),
-    ('left', '*', '/', '~', '\\', '%', '@'),
-    ('left', '!'),
+    ('left', '*', '/', '#', '\\', '%', '@'),
+    ('right', 'UNARY'),
 )
 
 shownwarning = False
@@ -299,9 +299,9 @@ class Dereference(LValue):
         """
         self.expr = expr
         self.char = char
-        FakeTuple.__init__(self, ('deref', ['~' if char else '*', expr]))
+        FakeTuple.__init__(self, ('deref', ['#' if char else '*', expr]))
     def __repr__(self):
-        return ('~' if self.char else '*') + '(' + repr(self.expr) + ')'
+        return ('#' if self.char else '*') + '(' + repr(self.expr) + ')'
 
 class Address(Expression):
     def __init__(self, lvalue):
@@ -557,7 +557,7 @@ def p_bin_expr(p):
     bin_expr : expr '*' expr
              | expr '/' expr
              | expr '\\\\' expr
-             | expr '~' expr
+             | expr '#' expr
              | expr '%' expr
              | expr '@' expr
              | expr '+' expr
@@ -582,7 +582,9 @@ def p_expr(p):
          | lvalue
          | address
          | literal
-         | '!' expr
+         | '!' expr %prec UNARY
+         | '-' expr %prec UNARY
+         | '~' expr %prec UNARY
     '''
     if len(p) == 2:
         p[0] = p[1]
@@ -631,13 +633,13 @@ def p_lvalue(p):
     else:
         p[0] = Identifier(p[1])
 
-# returns ('deref', ['*' or '~', *expr])
+# returns ('deref', ['*' or '#', *expr])
 def p_deref(p):
     '''
     deref : '*' '(' expr ')'
-          | '~' '(' expr ')'
+          | '#' '(' expr ')'
     '''
-    p[0] = Dereference(p[3], p[1] == '~')
+    p[0] = Dereference(p[3], p[1] == '#')
 
 # returns ('address', [*simple_lvalue])
 def p_address(p):
