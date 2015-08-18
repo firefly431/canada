@@ -22,6 +22,19 @@ rel_ops = {
     '!=': 'ne',
 }
 
+rel_ops_not = {
+    '>': 'le',
+    '<': 'ge',
+    '>=': 'l',
+    '<=': 'g',
+    '>|': 'be',
+    '>|=': 'b',
+    '<|': 'ae',
+    '<|=': 'a',
+    '==': 'ne',
+    '!=': 'e',
+}
+
 class ChangeThisNameError(Exception):
     def __init__(self, message, source):
         super().__init__(self, message)
@@ -423,14 +436,11 @@ class CodeGenerator:
     def generate_condition(self, cond, stack, true=None, false=None):
         """
         :type cond: Expression
-
-        returns jump true, jump false
-        e.g. jnz, jz
         """
         # some easy conditions
         if isinstance(cond, Negate):
             return self.generate_condition(cond.expr, stack, false, true)
-        if isinstance(cond, Literal):
+        elif isinstance(cond, Literal):
             if cond.type == 'INT_LIT':
                 if cond.value == 0:
                     if false:
@@ -448,16 +458,66 @@ class CodeGenerator:
             else:
                 if true:
                     self.write('jmp', true)
-        if isinstance(cond, Address):
+        elif isinstance(cond, Address):
             if true:
                 self.write('jmp', true)
-        # otherwise use a cmp
-        self.reg_expr(cond, 'eax', stack)
-        self.write('cmp', 'eax,0')
-        if true:
-            self.write('jnz', true)
-        if false:
-            self.write('jz', false)
+        elif isinstance(cond, BinaryExpression) and (cond.op in ('&&', '||', '&') or cond.op in rel_ops):
+            if cond.op == '&':
+                lit = None
+                other = None
+                if isinstance(cond.lhs, Literal):
+                    lit = cond.lhs
+                    other = cond.rhs
+                else:
+                    if isinstance(cond.rhs, Literal):
+                        lit = cond.rhs
+                        other = cond.lhs
+                    else:
+                        # neither is literal, but can still be optimized
+                        self.push_expr(cond.lhs, stack)
+                        self.reg_expr(cond.rhs, 'ebx', stack)
+                        self.write('pop', 'eax')
+                        self.write('test', 'eax,ebx')
+                        if true and false:
+                            self.write('je', true)
+                            self.write('jmp', false)
+                        elif true:
+                            self.write('je', true)
+                        elif false:
+                            self.write('jne', false)
+                if lit and other:
+                    self.reg_expr(other, 'eax', stack)
+                    self.write('test', 'eax,' + str(self.value('int', lit)))
+                    if true and false:
+                        self.write('je', true)
+                        self.write('jmp', false)
+                    elif true:
+                        self.write('je', true)
+                    elif false:
+                        self.write('jne', false)
+            elif cond.op in rel_ops:
+                self.push_expr(cond.lhs, stack)
+                self.reg_expr(cond.rhs, 'ebx', stack)
+                self.write('pop', 'eax')
+                self.write('cmp', 'eax,ebx')
+                if true and false:
+                    self.write(rel_ops[cond.op], true)
+                    self.write('jmp', false)
+                elif true:
+                    self.write(rel_ops[cond.op], true)
+                elif false:
+                    self.write(rel_ops_not[cond.op], false)
+            else:
+                assert cond.op in ('&&', '||')
+                # short-circuit
+        else:
+            # otherwise use a cmp
+            self.reg_expr(cond, 'eax', stack)
+            self.write('cmp', 'eax,0')
+            if true:
+                self.write('jne', true)
+            if false:
+                self.write('je', false)
     def simple_lvalue(self, lvalue, reg, stack, prefix=True):
         """
         :type lvalue: SimpleLValue
@@ -561,7 +621,7 @@ class CodeGenerator:
                 self.reg_expr(expr.rhs, ireg, stack)
                 self.write('pop', reg)
                 self.write(inst, reg + ',' + ireg)
-            elif expr.op in ('<=', '>=', '<', '>', '==', '!='):
+            elif expr.op in rel_ops:
                 inst = 'set' + rel_ops[expr.op]
                 self.push_expr(expr.lhs, stack)
                 self.reg_expr(expr.rhs, ireg, stack)
