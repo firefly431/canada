@@ -261,7 +261,7 @@ class CodeGenerator:
                     if lit_len != arr_size:
                         raise ChangeThisNameError("String literal wrong "
                                           "size", v)
-                    self.write('db', "'" + v.value.value + "'", label=v.name)
+                    self.write('db', "`" + v.value.value + "`", label=v.name)
                 else:
                     raise ChangeThisNameError("Array not initialized with "
                                       "array literal", v)
