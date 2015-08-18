@@ -6,3 +6,5 @@ parsetab.py
 parser.out
 *.o
 tools
+program
+program2
