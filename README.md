@@ -25,4 +25,5 @@ TODO
 ----
 
 * Unary operators (`~`, `-`)
+* External functions
 
