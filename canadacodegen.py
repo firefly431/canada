@@ -460,6 +460,8 @@ class CodeGenerator:
         """
         :type lvalue: SimpleLValue
         reg is a temporary register
+        it is OK to change any registers that aren't
+        reg or ebp before dereferencing
         """
         ident = None
         offset = 0
@@ -504,10 +506,10 @@ class CodeGenerator:
                 assert isinstance(expr.lvalue, Dereference)
                 self.reg_expr(expr.expr, reg, stack)
                 if expr.char == '*':
-                    self.write('mov', reg + ',[' + reg + ']')
+                    self.write('mov', reg + ',dword[' + reg + ']')
                 else:
                     creg = int_to_char.get(reg, 'al')
-                    self.write('mov', creg + ',[' + reg + ']')
+                    self.write('mov', creg + ',byte[' + reg + ']')
                     self.write('movsx', reg + ',' + creg)
         elif isinstance(expr, Negate):
             a = 0
@@ -579,7 +581,26 @@ class CodeGenerator:
             else:
                 assert expr.op == '='
                 assert isinstance(expr.lhs, LValue)
-                pass
+                self.push_expr(expr.rhs, stack)
+                if isinstance(expr.lhs, SimpleLValue):
+                    lval = self.simple_lvalue(expr.rhs, ireg, stack)
+                    self.write('pop', reg)
+                    self.write('mov', lval + ',' + reg)
+                else:
+                    assert isinstance(expr.lhs, Dereference)
+                    self.reg_expr(expr.lhs.expr, ireg, stack)
+                    self.write('pop', reg)
+                    if self.lhs.char == '*':
+                        self.write('mov', 'dword[' + ireg + '],' + reg)
+                    else:
+                        if reg not in int_to_char:
+                            creg = 'al'
+                            self.write('mov', 'eax,' + reg)
+                            self.write('movsx', reg + ',al')
+                        else:
+                            creg = int_to_char[reg]
+                            self.write('movsx', reg + ',' + creg)
+                        self.write('mov', 'byte[' + ireg + '],' + creg)
         else:
             assert isinstance(expr, FunctionCall)
             self.push_expr(expr, stack, stack)
