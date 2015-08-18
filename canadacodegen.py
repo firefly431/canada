@@ -501,12 +501,12 @@ class CodeGenerator:
                 self.write('pop', 'eax')
                 self.write('cmp', 'eax,ebx')
                 if true and false:
-                    self.write(rel_ops[cond.op], true)
+                    self.write('j' + rel_ops[cond.op], true)
                     self.write('jmp', false)
                 elif true:
-                    self.write(rel_ops[cond.op], true)
+                    self.write('j' + rel_ops[cond.op], true)
                 elif false:
-                    self.write(rel_ops_not[cond.op], false)
+                    self.write('j' + rel_ops_not[cond.op], false)
             else:
                 # short-circuit
                 if cond.op == '&&':

@@ -14,10 +14,7 @@
                 mov     ebx,-2147483648
                 pop     eax
                 cmp     eax,ebx
-                sete    al
-                movzx   eax,al
-                cmp     eax,0
-                jz      .ifelse0
+                ne      .ifelse0
                 push    12
                 push    ??sl0
                 push    1
@@ -33,10 +30,7 @@
                 mov     ebx,0
                 pop     eax
                 cmp     eax,ebx
-                setl    al
-                movzx   eax,al
-                cmp     eax,0
-                jz      .ifelse1
+                ge      .ifelse1
                 push    45
                 pop     eax
                 movsx   eax,al
@@ -62,10 +56,7 @@
                 mov     ebx,10
                 pop     eax
                 cmp     eax,ebx
-                setl    al
-                movzx   eax,al
-                cmp     eax,0
-                jz      .endwhile0
+                ge      .endwhile0
                 push    0
                 mov     ebx,dword[ebp-16]
                 pop     eax
@@ -88,10 +79,7 @@
                 mov     ebx,0
                 pop     eax
                 cmp     eax,ebx
-                setge   al
-                movzx   eax,al
-                cmp     eax,0
-                jz      .endwhile1
+                l       .endwhile1
                 mov     eax,dword[ebp+8]
                 push    eax
                 mov     ebx,10
@@ -131,10 +119,7 @@
                 mov     ebx,0
                 pop     eax
                 cmp     eax,ebx
-                sete    al
-                movzx   eax,al
-                cmp     eax,0
-                jz      .ifelse2
+                ne      .ifelse2
                 jmp     .endwhile1
 .ifelse2:       jmp     .while1
 .endwhile1:     push    9
@@ -188,10 +173,7 @@
                 mov     ebx,dword[num+0]
                 pop     eax
                 cmp     eax,ebx
-                setle   al
-                movzx   eax,al
-                cmp     eax,0
-                jz      .endwhile2
+                g       .endwhile2
                 mov     eax,dword[ebp-8]
                 push    eax
                 mov     ebx,dword[ebp-4]
