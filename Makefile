@@ -22,7 +22,7 @@ all: $(BINARIES) $(DOTPNGS) $(DOTS) $(ASSEMBLIES)
 
 bin/factorial: print.o
 
-bin/extern_test: print.o canada_c.o extern_test.o
+bin/extern_test: print.o canada_c.o extern_test.o extern_c.c
 	$(CC) -arch i386 $^ -o $@
 
 bin/%: %.o canada.o

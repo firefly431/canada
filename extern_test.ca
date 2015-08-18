@@ -1,5 +1,5 @@
 extern void print_int(n);
-extern int my_int;
+extern "C" int my_int;
 extern "C" int puts(str);
 
 void main(argc, argv) {

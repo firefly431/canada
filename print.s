@@ -1,5 +1,4 @@
                 GLOBAL ?@print_int
-                GLOBAL my_int
                 SECTION .text
 ?@print_int:    push    ebp
                 mov     ebp,esp
@@ -157,5 +156,4 @@
                 add     esp,4
                 jmp     ebx
                 SECTION .data
-my_int:         dd      7
 ??sl0:          db      `-2147483648\n`

@@ -28,7 +28,4 @@ void print_int(n) {
     $write(1, &buffer[9], 1);
 }
 
-int my_int = 7;
-
 export print_int();
-export my_int;

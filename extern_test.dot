@@ -12,7 +12,7 @@ digraph parse_tree {
     node5 [label = "void", shape = "diamond"]
     node6 [label = "print_int", shape = "diamond"]
     node7 [label = "['n']", shape = "diamond"]
-    node2 [label = "extern_var"]
+    node2 [label = "extern_c_var"]
     node2 -> node8
     node2 -> node9
     node8 [label = "PRIM_TYPE"]

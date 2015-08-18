@@ -1,6 +1,6 @@
                 GLOBAL ?@main
                 EXTERN ?@print_int
-                EXTERN my_int
+                EXTERN _my_int
                 EXTERN _puts
                 SECTION .text
 ?@main:         push    ebp
@@ -10,7 +10,7 @@
                 push    eax
                 pop     eax
                 mov     dword[ebp-4],eax
-                mov     eax,dword[my_int+0]
+                mov     eax,dword[_my_int+0]
                 push    eax
                 call    ?@print_int
                 mov     eax,esp
