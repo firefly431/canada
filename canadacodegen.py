@@ -311,6 +311,9 @@ class CodeGenerator:
         """
         :type f: Function
         """
+        if f.name == 'main':
+            if len(f.par_list) != 2:
+                raise ChangeThisNameError("Main must have 2 parameters", f)
         self.gfuncs[f.name] = f
         stack = StackFrame(f.par_list)
         self.label('?@' + f.name)
