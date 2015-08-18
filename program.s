@@ -9,7 +9,54 @@
                 push    0
                 pop     eax
                 mov     dword[ebp-16],eax
-                sub     esp,0
+.if0:           mov     eax,dword[ebp+8]
+                push    eax
+                mov     ebx,-2147483648
+                pop     eax
+                cmp     eax,ebx
+                sete    al
+                movzx   eax,al
+                cmp     eax,0
+                jz      .ifelse0
+                push    12
+                push    ??sl0
+                push    1
+                push    dword 0
+                mov     eax,4
+                int     80h
+                add     esp,16
+                push    eax
+                jmp     .return
+.ifelse0:
+.if1:           mov     eax,dword[ebp+8]
+                push    eax
+                mov     ebx,0
+                pop     eax
+                cmp     eax,ebx
+                setl    al
+                movzx   eax,al
+                cmp     eax,0
+                jz      .ifelse1
+                push    45
+                pop     eax
+                movsx   eax,al
+                mov     byte[ebp-3],al
+                push    1
+                lea     eax,[ebp-3]
+                push    eax
+                push    1
+                push    dword 0
+                mov     eax,4
+                int     80h
+                add     esp,16
+                push    0
+                mov     ebx,dword[ebp+8]
+                pop     eax
+                sub     eax,ebx
+                push    eax
+                pop     eax
+                mov     dword[ebp+8],eax
+.ifelse1:
 .while0:        mov     eax,dword[ebp-16]
                 push    eax
                 mov     ebx,10
@@ -33,27 +80,9 @@
                 pop     eax
                 mov     dword[ebp-16],eax
                 jmp     .while0
-.endwhile0:     add     esp,0
-.if0:           mov     eax,dword[ebp+8]
-                push    eax
-                mov     ebx,0
-                pop     eax
-                cmp     eax,ebx
-                setl    al
-                movzx   eax,al
-                cmp     eax,0
-                jz      .ifelse0
-                push    1
-                push    ??sl0
-                push    1
-                push    dword 0
-                mov     eax,4
-                int     80h
-                add     esp,16
-.ifelse0:       push    9
+.endwhile0:     push    9
                 pop     eax
                 mov     dword[ebp-16],eax
-                sub     esp,0
 .while1:        mov     eax,dword[ebp-16]
                 push    eax
                 mov     ebx,0
@@ -70,6 +99,10 @@
                 cdq
                 idiv    ebx
                 mov     eax,edx
+                push    eax
+                mov     ebx,48
+                pop     eax
+                add     eax,ebx
                 push    eax
                 mov     ebx,dword[ebp-16]
                 pop     eax
@@ -93,7 +126,7 @@
                 push    eax
                 pop     eax
                 mov     dword[ebp-16],eax
-.if1:           mov     eax,dword[ebp+8]
+.if2:           mov     eax,dword[ebp+8]
                 push    eax
                 mov     ebx,0
                 pop     eax
@@ -101,11 +134,10 @@
                 sete    al
                 movzx   eax,al
                 cmp     eax,0
-                jz      .ifelse1
+                jz      .ifelse2
                 jmp     .endwhile1
-.ifelse1:       jmp     .while1
-.endwhile1:     add     esp,0
-                push    9
+.ifelse2:       jmp     .while1
+.endwhile1:     push    9
                 mov     ebx,dword[ebp-16]
                 pop     eax
                 sub     eax,ebx
@@ -116,6 +148,18 @@
                 pop     eax
                 add     eax,ebx
                 lea     eax,[ebp-12+eax]
+                push    eax
+                push    1
+                push    dword 0
+                mov     eax,4
+                int     80h
+                add     esp,16
+                push    10
+                pop     eax
+                movsx   eax,al
+                mov     byte[ebp-3],al
+                push    1
+                lea     eax,[ebp-3]
                 push    eax
                 push    1
                 push    dword 0
@@ -139,7 +183,6 @@
                 push    1
                 pop     eax
                 mov     dword[ebp-4],eax
-                sub     esp,0
 .while2:        mov     eax,dword[ebp-4]
                 push    eax
                 mov     ebx,dword[num+0]
@@ -166,9 +209,16 @@
                 pop     eax
                 mov     dword[ebp-4],eax
                 jmp     .while2
-.endwhile2:     add     esp,0
-                mov     eax,dword[ebp-8]
+.endwhile2:     mov     eax,dword[ebp-8]
                 push    eax
+                call    ?@print_int
+                push    -10
+                call    ?@print_int
+                push    0
+                call    ?@print_int
+                push    2147483647
+                call    ?@print_int
+                push    -2147483648
                 call    ?@print_int
                 add     esp,8
                 push    0
@@ -180,4 +230,4 @@
                 jmp     ebx
                 SECTION .data
 num:            dd      5
-??sl0:          db      '-'
+??sl0:          db      `-2147483648\n`

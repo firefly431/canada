@@ -25,22 +25,30 @@ void print_int(n) {
     char[10] buffer;
     int i;
     i = 0;
+    if (n == -2147483648)
+        return $write(1, "-2147483648\n", 12);
+    if (n < 0) {
+        buffer[9] = '-';
+        $write(1, &buffer[9], 1);
+        n = 0 - n;
+    }
     while (i < 10) {
         buffer[i] = 0;
         i = i + 1;
     }
-    if (n < 0)
-        $write(1, "-", 1);
     i = 9;
     // conveniently, this prints a zero if
     // n is 0
     while (i >= 0) {
-        buffer[i] = n % 10;
+        buffer[i] = n % 10 + '0';
         n = n / 10;
         i = i - 1;
         if (n == 0) break;
     }
     $write(1, &buffer[i + 1], 9 - i);
+    // print a newline
+    buffer[9] = 10;
+    $write(1, &buffer[9], 1);
 }
 
 void main(argc, argv) {
@@ -53,6 +61,11 @@ void main(argc, argv) {
         i = i + 1;
     }
     print_int(r);
+    // print a few ints to test the print_int function
+    print_int(-10);
+    print_int(0);
+    print_int(2147483647);
+    print_int(-2147483648);
 }
 
 // let's say we want to export everything

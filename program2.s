@@ -4,7 +4,6 @@
                 SECTION .text
 ?@my_func:      push    ebp
                 mov     ebp,esp
-                sub     esp,0
                 sub     esp,4
 .while0:        mov     eax,dword[ebp+8]
                 push    eax
@@ -62,7 +61,6 @@
                 mov     eax,dword[ebp+8]
                 push    eax
                 jmp     .return
-                add     esp,0
                 push    0
 .return:        pop     eax
                 mov     esp,ebp
@@ -73,7 +71,6 @@
                 jmp     ebx
 ?@square:       push    ebp
                 mov     ebp,esp
-                sub     esp,0
                 mov     eax,dword[ebp+8]
                 mov     al,byte[eax]
                 movsx   eax,al
@@ -89,7 +86,6 @@
                 movsx   eax,al
                 mov     byte[ebx],al
                 jmp     .return
-                add     esp,0
                 push    0
 .return:        pop     eax
                 mov     esp,ebp
@@ -127,9 +123,9 @@
                 SECTION .data
 test_array:     dd      1,2,3,4,53
 useless:        dd      ??sl0,??sl1
-str:            db      'abc'
+str:            db      `abc`
 foo:            dd      8
-a:              db      'foobar'
+a:              db      `foobar`
 b:              dd      1
-??sl0:          db      'HELLO, WORLD!\n'
-??sl1:          db      '\r\n\t \\\\\\'
+??sl0:          db      `HELLO, WORLD!\n`
+??sl1:          db      `\r\n\t \\\\\\`
