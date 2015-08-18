@@ -35,12 +35,12 @@ class StackEntry:
         """
         self.var = var
         self.addr = addr
-    def value(self, offset=0):
+    def value(self, offset=0, prefix=True):
         oprefix = '4*' if self.var.type == 'int' else ''
         if isinstance(offset, str):
-            return self.value()[:-1] + '+' + oprefix + offset + ']'
+            return self.value(0, prefix)[:-1] + '+' + oprefix + offset + ']'
         offset += self.addr
-        return ('dword' if self.var.type == 'int' else 'byte') + '[ebp' + ('+' + oprefix + str(offset) if offset > 0 else '-' + oprefix + str(-offset)) + ']'
+        return (('dword' if self.var.type == 'int' else 'byte') if prefix else '') + '[ebp' + ('+' + oprefix + str(offset) if offset > 0 else '-' + oprefix + str(-offset)) + ']'
     def __str__(self):
         return '<' + repr(self.var) + ' at ' + self.value() + '>'
 
@@ -51,11 +51,11 @@ class GlobalStackEntry(StackEntry):
         """
         super().__init__(VariableDeclaration(var.var_type, var.name), var.name)
         self.name = var.name
-    def value(self, offset=0):
+    def value(self, offset=0, prefix=True):
         oprefix = '4*' if self.var.type == 'int' else ''
         if isinstance(offset, str):
-            return '[' + self.name + '+' + oprefix + offset + ']'
-        return ('dword' if self.var.type == 'int' else 'byte') + '[' + self.name + ('+' + oprefix + str(offset) if offset > 0 else '-' + oprefix + str(-offset)) + ']'
+            return (('dword' if self.var.type == 'int' else 'byte') if prefix else '') + '[' + self.name + '+' + oprefix + offset + ']'
+        return (('dword' if self.var.type == 'int' else 'byte') if prefix else '') + '[' + self.name + ('+' + oprefix + str(offset) if offset > 0 else '-' + oprefix + str(-offset)) + ']'
 
 class StackFrame:
     def __init__(self, parameters):
@@ -96,6 +96,8 @@ class StackFrame:
         return ret
     def __getitem__(self, key):
         return self.table[key]
+    def __contains__(self, key):
+        return key in self.table
 
 def generate(fn, out=None, margin=16, iwidth=8, width=40):
     """
@@ -196,6 +198,8 @@ class CodeGenerator:
         self.functions = [d for d in ast.decls if isinstance(d, Function)]
         self.exports = [d for d in ast.decls if isinstance(d, Export)]
         assert all(sum((x in self.variables, x in self.functions, x in self.exports)) == 1 for x in ast.decls)
+        self.gvars = {v.name: v for v in self.variables}
+        self.gfuncs = {v.name: v for v in self.functions}
         self.generate_exports()
         self.generate_text()
         self.generate_data()
@@ -450,7 +454,7 @@ class CodeGenerator:
             self.write('jnz', true)
         if false:
             self.write('jz', false)
-    def simple_lvalue(self, lvalue, reg, stack):
+    def simple_lvalue(self, lvalue, reg, stack, prefix=True):
         """
         :type lvalue: SimpleLValue
         reg is a temporary register
@@ -467,7 +471,7 @@ class CodeGenerator:
             else:
                 self.reg_expr(lvalue.index, reg, stack)
                 offset = reg
-        return self.lookup(stack, lvalue.name).value(offset)
+        return self.lookup(stack, ident).value(offset, prefix)
     def reg_expr(self, expr, reg, stack):
         """
         :type expr: Expression
@@ -477,20 +481,21 @@ class CodeGenerator:
         Warning: may clobber every register but reg
         """
         if isinstance(expr, Literal):
-            self.write('mov', reg + ',' + self.value('int', expr))
+            self.write('mov', reg + ',' + str(self.value('int', expr)))
         elif isinstance(expr, Address):
             if isinstance(expr.lvalue, SimpleLValue):
-                self.write('lea', reg + ',' + self.simple_lvalue(expr.lvalue, reg, stack))
+                self.write('lea', reg + ',' + self.simple_lvalue(expr.lvalue, reg, stack, False))
             else:
                 assert isinstance(expr.lvalue, Dereference)
                 self.warn('Will not attempt to dereference', expr)
                 self.reg_expr(expr.lvalue.expr, reg, stack)
         elif isinstance(expr, LValue):
-            if isinstance(expr.lvalue, SimpleLValue):
+            if isinstance(expr, SimpleLValue):
                 val = self.simple_lvalue(expr, reg, stack)
                 if val.startswith('byte'):
-                    self.write('mov', int_to_char[reg] + ',' + val)
-                    self.write('movsx', reg + ',' + int_to_char[reg])
+                    creg = int_to_char.get(reg, 'al')
+                    self.write('mov', creg + ',' + val)
+                    self.write('movsx', reg + ',' + creg)
                 else:
                     self.write('mov', reg + ',' + val)
             else:
@@ -499,8 +504,9 @@ class CodeGenerator:
                 if expr.char == '*':
                     self.write('mov', reg + ',[' + reg + ']')
                 else:
-                    self.write('mov', int_to_char[reg] + ',[' + reg + ']')
-                    self.write('movsx', reg + ',' + int_to_char[reg])
+                    creg = int_to_char.get(reg, 'al')
+                    self.write('mov', creg + ',[' + reg + ']')
+                    self.write('movsx', reg + ',' + creg)
         elif isinstance(expr, Negate):
             a = 0
             while isinstance(expr.expr, Negate):
@@ -555,7 +561,9 @@ class CodeGenerator:
                 self.reg_expr(expr.rhs, ireg, stack)
                 self.write('pop', reg)
                 self.write('cmp', reg + ',' + ireg)
-                self.write(inst, reg)
+                creg = int_to_char.get(reg, 'al')
+                self.write(inst, creg)
+                self.write('movzx', reg + ',' + creg)
             elif expr.op in ('&&', '||'):
                 # use a condition
                 l_false = '.l' + str(self.labelc)
@@ -599,7 +607,7 @@ class CodeGenerator:
                         self.write('pop', reg)
                 else:
                     self.write('push', 'dword 0')
-                self.write('mov', 'eax,' + str(sysc), comment=fname)
+                self.write('mov', 'eax,' + str(sysc))
                 self.write('int', '80h')
                 if self.linux:
                     if len(expr.args) == 6:
@@ -623,7 +631,7 @@ class CodeGenerator:
                 if not isinstance(func.type, Void) and not push:
                     self.write('add', 'esp,4')
         elif isinstance(expr, Literal):
-            self.write('push', self.value('int', expr))
+            self.write('push', str(self.value('int', expr)))
         else:
             self.reg_expr(expr, 'eax', stack)
             if push:
@@ -637,6 +645,7 @@ class CodeGenerator:
             return stack[name]
         if name in self.gvars:
             return GlobalStackEntry(self.gvars[name])
+        raise ChangeThisNameError("No such variable: " + name, None)
 
 if __name__ == '__main__':
     import sys

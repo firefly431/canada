@@ -6,16 +6,44 @@
                 mov     ebp,esp
                 sub     esp,0
                 sub     esp,4
-.while0:        pop     eax
+.while0:        mov     al,byte[ebp+8]
+                movsx   eax,al
+                push    eax
+                mov     ebx,5
+                pop     eax
+                cmp     eax,ebx
+                setl    al
+                movzx   eax,al
                 cmp     eax,0
                 jz      .endwhile0
-.if0:           pop     eax
+.if0:           mov     al,byte[ebp+8]
+                movsx   eax,al
+                push    eax
+                mov     ebx,3
+                pop     eax
+                cmp     eax,ebx
+                setl    al
+                movzx   eax,al
+                push    eax
+                mov     al,byte[ebp+8]
+                movsx   eax,al
+                push    eax
+                mov     eax,8
+                pop     ebx
+                cmp     ebx,eax
+                setle   bl
+                movzx   ebx,bl
+                pop     eax
+                and     eax,ebx
                 cmp     eax,0
                 jz      .ifelse0
                 jmp     .while0
 .ifelse0:       jmp     .endwhile0
                 jmp     .while0
 .endwhile0:     add     esp,4
+                mov     al,byte[ebp+8]
+                movsx   eax,al
+                push    eax
                 jmp     .return
                 add     esp,0
                 push    0
@@ -41,8 +69,18 @@
 ?@main:         push    ebp
                 mov     ebp,esp
                 sub     esp,4
-.if1:
-.if2:
+                lea     eax,[ebp-4]
+                push    eax
+                call    ?@square
+                lea     eax,[test_array+3]
+                push    eax
+                call    ?@square
+.if1:           mov     eax,1
+                cmp     eax,0
+                jz      .ifelse1
+.if2:           mov     eax,1
+                cmp     eax,0
+                jz      .ifelse2
 .ifelse2:
 .ifelse1:       add     esp,4
                 push    0
