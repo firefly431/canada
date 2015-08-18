@@ -1,0 +1,44 @@
+digraph parse_tree {
+    node [shape = box];
+    node0 [label = "program"]
+    node0 -> node1
+    node0 -> node2
+    node0 -> node3
+    node1 [label = "extern"]
+    node1 -> node4
+    node1 -> node5
+    node1 -> node6
+    node4 [label = "void", shape = "diamond"]
+    node5 [label = "print_int", shape = "diamond"]
+    node6 [label = "['n']", shape = "diamond"]
+    node2 [label = "extern_var"]
+    node2 -> node7
+    node2 -> node8
+    node7 [label = "PRIM_TYPE"]
+    node7 -> node9
+    node9 [label = "int", shape = "diamond"]
+    node8 [label = "my_int", shape = "diamond"]
+    node3 [label = "function"]
+    node3 -> node10
+    node3 -> node11
+    node3 -> node12
+    node3 -> node13
+    node10 [label = "void", shape = "diamond"]
+    node11 [label = "main", shape = "diamond"]
+    node12 [label = "par_list"]
+    node12 -> node14
+    node12 -> node15
+    node14 [label = "argc", shape = "diamond"]
+    node15 [label = "argv", shape = "diamond"]
+    node13 [label = "block"]
+    node13 -> node16
+    node16 [label = "function_call"]
+    node16 -> node17
+    node16 -> node18
+    node17 [label = "print_int", shape = "diamond"]
+    node18 [label = "arg_list"]
+    node18 -> node19
+    node19 [label = "IDENT"]
+    node19 -> node20
+    node20 [label = "my_int", shape = "diamond"]
+}

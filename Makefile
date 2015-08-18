@@ -3,7 +3,7 @@ DOTS := $(SOURCES:.ca=.dot)
 DOTPNGS := $(SOURCES:.ca=.dot.png)
 ASSEMBLIES := $(SOURCES:.ca=.s)
 OBJECTS := $(SOURCES:.ca=.o)
-BINARIES :=  $(SOURCES:%.ca=bin/%)
+BINARIES := bin/factorial bin/parse_test bin/extern_test
 
 ifeq ($(shell uname -s),Linux)
 	OUTPUT_FORMAT := elf
@@ -20,8 +20,12 @@ endif
 
 all: $(BINARIES) $(DOTPNGS) $(DOTS) $(ASSEMBLIES)
 
+bin/factorial: print.o
+
+bin/extern_test: print.o
+
 bin/%: %.o canada.o
-	ld -e _start $+ -o $@
+	ld -e _start $^ -o $@
 
 %.o: %.s
 	nasm -o $@ -f $(OUTPUT_FORMAT) $<

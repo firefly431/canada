@@ -759,7 +759,8 @@ class CodeGenerator:
     def generate_exports(self):
         for exp in self.exports:
             self.write('GLOBAL ' + ('?@' if exp.function else '') + exp.name)
-        self.write('GLOBAL ?@main')
+        if 'main' in self.gfuncs:
+            self.write('GLOBAL ?@main')
     def lookup(self, stack, name):
         if name in stack:
             return stack[name]
@@ -772,14 +773,16 @@ class CodeGenerator:
             if ext.c is not None:
                 if ext.c != 'C' and ext.c != 'c':
                     raise ChangeThisNameError("Invalid extern", ext)
-                ename = '_' + ename
+                ename = self.c_prefix + ename
             if ext.is_var:
                 self.gvars[ext.name] = GlobalStackEntry(ext.type, ename)
             else:
+                ename = '?@' + ext.name
                 if ext.c:
                     self.gfuncs[ext.name] = CFunction(ext)
                 else:
-                    self.gfuncs[ext.name] = Function(ext.type, ename, ext.par_list)
+                    self.gfuncs[ext.name] = Function(ext.type, ext.name, ext.par_list)
+            self.write('EXTERN ' + ename)
 
 if __name__ == '__main__':
     import sys

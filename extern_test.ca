@@ -1,0 +1,6 @@
+extern void print_int(n);
+extern int my_int;
+
+void main(argc, argv) {
+    print_int(my_int);
+}
