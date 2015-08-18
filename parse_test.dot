@@ -41,10 +41,14 @@ digraph parse_tree {
     node18 -> node20
     node20 [label = "negate"]
     node20 -> node21
-    node21 [label = "INT_LIT"]
+    node21 [label = "negate"]
     node21 -> node22
-    node22 [label = "-5", shape = "diamond"]
-    node19 [label = "INT_LIT"]
-    node19 -> node23
-    node23 [label = "-5", shape = "diamond"]
+    node22 [label = "INT_LIT"]
+    node22 -> node23
+    node23 [label = "5", shape = "diamond"]
+    node19 [label = "negate"]
+    node19 -> node24
+    node24 [label = "IDENT"]
+    node24 -> node25
+    node25 [label = "unary_test", shape = "diamond"]
 }

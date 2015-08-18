@@ -3,12 +3,15 @@
 ?@main:         push    ebp
                 mov     ebp,esp
                 sub     esp,4
-                mov     eax,-5
+                mov     eax,5
                 cmp     eax,0
-                setne   al
+                sete    al
                 movzx   eax,al
                 push    eax
-                mov     ebx,-5
+                mov     ebx,dword[ebp-4]
+                cmp     ebx,0
+                sete    bl
+                movzx   ebx,bl
                 pop     eax
                 sub     eax,ebx
                 push    eax
