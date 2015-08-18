@@ -384,7 +384,7 @@ class CodeGenerator:
         function is only passed to generate_block
         """
         if isinstance(stmt, Block):
-            return self.generate_block(stmt, stack)
+            return self.generate_block(stmt, stack, function)
         if isinstance(stmt, IfStatement):
             l_if = '.if' + str(self.ifc)
             l_else = '.ifelse' + str(self.ifc)

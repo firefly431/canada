@@ -17,7 +17,6 @@
                 push    eax
                 pop     eax
                 mov     dword[ebp-4],eax
-                add     esp,4
                 push    0
 .return:        pop     eax
                 mov     esp,ebp

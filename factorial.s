@@ -151,7 +151,6 @@
                 mov     eax,4
                 int     80h
                 add     esp,16
-                add     esp,16
                 push    0
 .return:        pop     eax
                 mov     esp,ebp
@@ -202,7 +201,6 @@
                 call    ?@print_int
                 push    -2147483648
                 call    ?@print_int
-                add     esp,8
                 push    0
 .return:        pop     eax
                 mov     esp,ebp
