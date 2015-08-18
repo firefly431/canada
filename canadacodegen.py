@@ -333,11 +333,13 @@ class CodeGenerator:
             self.vardecs = [v for v in self.block.statements if isinstance(v, VariableDeclaration)]
             self.stack, self.bsize = self.stack.extend(self.vardecs)
             assert isinstance(self.stack.size(), int) # make sure this works
-            self.cg.write('sub', 'esp,' + str(self.bsize))
+            if self.bsize > 0:
+                self.cg.write('sub', 'esp,' + str(self.bsize))
             return self
         def __exit__(self, *args):
             if not self.function:
-                self.cg.write('add', 'esp,' + str(self.bsize))
+                if self.bsize > 0:
+                    self.cg.write('add', 'esp,' + str(self.bsize))
     def generate_block_body(self, bw, clabel = None, blabel = None):
         """
         :type bw: CodeGenerator.BlockWrapper
