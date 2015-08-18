@@ -37,18 +37,26 @@ digraph parse_tree {
     node15 -> node18
     node15 -> node19
     node17 [label = "-", shape = "diamond"]
-    node18 [label = "negate"]
+    node18 [label = "unary"]
     node18 -> node20
-    node20 [label = "negate"]
-    node20 -> node21
-    node21 [label = "negate"]
+    node18 -> node21
+    node20 [label = "~", shape = "diamond"]
+    node21 [label = "unary"]
     node21 -> node22
-    node22 [label = "INT_LIT"]
-    node22 -> node23
-    node23 [label = "5", shape = "diamond"]
-    node19 [label = "negate"]
-    node19 -> node24
-    node24 [label = "IDENT"]
-    node24 -> node25
-    node25 [label = "unary_test", shape = "diamond"]
+    node21 -> node23
+    node22 [label = "-", shape = "diamond"]
+    node23 [label = "unary"]
+    node23 -> node24
+    node23 -> node25
+    node24 [label = "!", shape = "diamond"]
+    node25 [label = "INT_LIT"]
+    node25 -> node26
+    node26 [label = "5", shape = "diamond"]
+    node19 [label = "unary"]
+    node19 -> node27
+    node19 -> node28
+    node27 [label = "-", shape = "diamond"]
+    node28 [label = "IDENT"]
+    node28 -> node29
+    node29 [label = "unary_test", shape = "diamond"]
 }

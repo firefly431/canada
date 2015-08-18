@@ -1,7 +1,7 @@
 import functools
 import canadaparse
 
-from canadaparse import Program, GlobalDeclaration, GlobalVariable, VariableType, PrimitiveType, Void, ArrayDeclaration, ArrayLiteral, Function, BlockStatement, Statement, EmptyStatement, IfStatement, WhileLoop, BreakStatement, ContinueStatement, ReturnStatement, VariableDeclaration, Block, Expression, ExpressionStatement, Literal, BinaryExpression, FunctionCall, LValue, SimpleLValue, Identifier, Dereference, Address, ArrayAccess, Negate, Export
+from canadaparse import Program, GlobalDeclaration, GlobalVariable, VariableType, PrimitiveType, Void, ArrayDeclaration, ArrayLiteral, Function, BlockStatement, Statement, EmptyStatement, IfStatement, WhileLoop, BreakStatement, ContinueStatement, ReturnStatement, VariableDeclaration, Block, Expression, ExpressionStatement, Literal, BinaryExpression, FunctionCall, LValue, SimpleLValue, Identifier, Dereference, Address, ArrayAccess, Unary, Export
 from syscall import syscalls
 
 import os
@@ -441,7 +441,7 @@ class CodeGenerator:
         :type cond: Expression
         """
         # some easy conditions
-        if isinstance(cond, Negate):
+        if isinstance(cond, Unary) and cond.op == '!':
             return self.generate_condition(cond.expr, stack, false, true)
         elif isinstance(cond, Literal):
             if cond.type == 'INT_LIT':
@@ -582,16 +582,17 @@ class CodeGenerator:
                     creg = int_to_char.get(reg, 'al')
                     self.write('mov', creg + ',byte[' + reg + ']')
                     self.write('movsx', reg + ',' + creg)
-        elif isinstance(expr, Negate):
-            a = 0
-            while isinstance(expr.expr, Negate):
-                expr = expr.expr
-                a = 1 - a
+        elif isinstance(expr, Unary):
             self.reg_expr(expr.expr, reg, stack)
-            self.write('cmp', reg + ',0')
-            breg = int_to_char.get(reg, 'al')
-            self.write(('sete', 'setne')[a], breg)
-            self.write('movzx', reg + ',' + breg)
+            if expr.op == '!':
+                self.write('cmp', reg + ',0')
+                breg = int_to_char.get(reg, 'al')
+                self.write('sete', breg)
+                self.write('movzx', reg + ',' + breg)
+            elif expr.op == '~':
+                self.write('not', reg)
+            elif expr.op == '-':
+                self.write('neg', reg)
         elif isinstance(expr, BinaryExpression):
             # lhs, op, rhs
             ireg = 'eax' if reg != 'eax' else 'ebx'

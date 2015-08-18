@@ -228,12 +228,17 @@ class ExpressionStatement(Statement):
     def __repr__(self):
         return repr(self.expr) + ';'
 
-class Negate(Expression):
-    def __init__(self, expr):
+class Unary(Expression):
+    def __init__(self, op, expr):
+        """
+        :type op: str
+        :type expr: Expression
+        """
+        self.op = op
         self.expr = expr
-        FakeTuple.__init__(self, ('negate', [expr]))
+        FakeTuple.__init__(self, ('unary', [op, expr]))
     def __repr__(self):
-        return '!(' + repr(self.expr) + ')'
+        return self.op + '(' + repr(self.expr) + ')'
 
 class Literal(Expression):
     def __init__(self, type, value):
@@ -589,7 +594,7 @@ def p_expr(p):
     if len(p) == 2:
         p[0] = p[1]
     elif len(p) == 3:
-        p[0] = Negate(p[2])
+        p[0] = Unary(p[1], p[2])
     else:
         p[0] = p[2]
 

@@ -7,11 +7,11 @@
                 cmp     eax,0
                 sete    al
                 movzx   eax,al
+                neg     eax
+                not     eax
                 push    eax
                 mov     ebx,dword[ebp-4]
-                cmp     ebx,0
-                sete    bl
-                movzx   ebx,bl
+                neg     ebx
                 pop     eax
                 sub     eax,ebx
                 push    eax
