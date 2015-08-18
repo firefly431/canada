@@ -300,69 +300,73 @@ digraph parse_tree {
     node147 [label = "void", shape = "diamond"]
     node148 [label = "main", shape = "diamond"]
     node149 [label = "par_list"]
+    node149 -> node151
+    node149 -> node152
+    node151 [label = "argc", shape = "diamond"]
+    node152 [label = "argv", shape = "diamond"]
     node150 [label = "block"]
-    node150 -> node151
-    node150 -> node152
     node150 -> node153
     node150 -> node154
     node150 -> node155
-    node151 [label = "var_decl"]
-    node151 -> node156
-    node151 -> node157
-    node156 [label = "PRIM_TYPE"]
-    node156 -> node158
-    node158 [label = "int", shape = "diamond"]
-    node157 [label = "a", shape = "diamond"]
-    node152 [label = "bin_expr"]
-    node152 -> node159
-    node152 -> node160
-    node152 -> node161
-    node159 [label = "=", shape = "diamond"]
-    node160 [label = "IDENT"]
-    node160 -> node162
-    node162 [label = "a", shape = "diamond"]
-    node161 [label = "INT_LIT"]
-    node161 -> node163
-    node163 [label = "8", shape = "diamond"]
-    node153 [label = "function_call"]
-    node153 -> node164
-    node153 -> node165
-    node164 [label = "square", shape = "diamond"]
-    node165 [label = "arg_list"]
-    node165 -> node166
-    node166 [label = "address"]
-    node166 -> node167
-    node167 [label = "IDENT"]
+    node150 -> node156
+    node150 -> node157
+    node153 [label = "var_decl"]
+    node153 -> node158
+    node153 -> node159
+    node158 [label = "PRIM_TYPE"]
+    node158 -> node160
+    node160 [label = "int", shape = "diamond"]
+    node159 [label = "a", shape = "diamond"]
+    node154 [label = "bin_expr"]
+    node154 -> node161
+    node154 -> node162
+    node154 -> node163
+    node161 [label = "=", shape = "diamond"]
+    node162 [label = "IDENT"]
+    node162 -> node164
+    node164 [label = "a", shape = "diamond"]
+    node163 [label = "INT_LIT"]
+    node163 -> node165
+    node165 [label = "8", shape = "diamond"]
+    node155 [label = "function_call"]
+    node155 -> node166
+    node155 -> node167
+    node166 [label = "square", shape = "diamond"]
+    node167 [label = "arg_list"]
     node167 -> node168
-    node168 [label = "a", shape = "diamond"]
-    node154 [label = "function_call"]
-    node154 -> node169
-    node154 -> node170
-    node169 [label = "square", shape = "diamond"]
-    node170 [label = "arg_list"]
-    node170 -> node171
-    node171 [label = "address"]
-    node171 -> node172
-    node172 [label = "array_acc"]
+    node168 [label = "address"]
+    node168 -> node169
+    node169 [label = "IDENT"]
+    node169 -> node170
+    node170 [label = "a", shape = "diamond"]
+    node156 [label = "function_call"]
+    node156 -> node171
+    node156 -> node172
+    node171 [label = "square", shape = "diamond"]
+    node172 [label = "arg_list"]
     node172 -> node173
-    node172 -> node174
-    node173 [label = "test_array", shape = "diamond"]
-    node174 [label = "INT_LIT"]
+    node173 [label = "address"]
+    node173 -> node174
+    node174 [label = "array_acc"]
     node174 -> node175
-    node175 [label = "3", shape = "diamond"]
-    node155 [label = "if_stmt"]
-    node155 -> node176
-    node155 -> node177
+    node174 -> node176
+    node175 [label = "test_array", shape = "diamond"]
     node176 [label = "INT_LIT"]
-    node176 -> node178
-    node178 [label = "1", shape = "diamond"]
-    node177 [label = "if_stmt"]
-    node177 -> node179
-    node177 -> node180
-    node177 -> node181
-    node179 [label = "INT_LIT"]
+    node176 -> node177
+    node177 [label = "3", shape = "diamond"]
+    node157 [label = "if_stmt"]
+    node157 -> node178
+    node157 -> node179
+    node178 [label = "INT_LIT"]
+    node178 -> node180
+    node180 [label = "1", shape = "diamond"]
+    node179 [label = "if_stmt"]
+    node179 -> node181
     node179 -> node182
-    node182 [label = "1", shape = "diamond"]
-    node180 [label = ";", shape = "diamond"]
-    node181 [label = ";", shape = "diamond"]
+    node179 -> node183
+    node181 [label = "INT_LIT"]
+    node181 -> node184
+    node184 [label = "1", shape = "diamond"]
+    node182 [label = ";", shape = "diamond"]
+    node183 [label = ";", shape = "diamond"]
 }
