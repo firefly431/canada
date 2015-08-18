@@ -10,10 +10,7 @@
                 mov     ebx,5
                 pop     eax
                 cmp     eax,ebx
-                setl    al
-                movzx   eax,al
-                cmp     eax,0
-                jz      .endwhile0
+                jge     .endwhile0
                 mov     eax,dword[ebp+8]
                 push    eax
                 mov     ebx,1
@@ -41,9 +38,8 @@
                 setle   bl
                 movzx   ebx,bl
                 pop     eax
-                and     eax,ebx
-                cmp     eax,0
-                jz      .ifelse0
+                test    eax,ebx
+                jne     .ifelse0
                 jmp     .while0
 .ifelse0:       jmp     .endwhile0
                 mov     eax,dword[ebp+8]
@@ -105,12 +101,8 @@
                 lea     eax,[test_array+3]
                 push    eax
                 call    ?@square
-.if1:           mov     eax,1
-                cmp     eax,0
-                jz      .ifelse1
-.if2:           mov     eax,1
-                cmp     eax,0
-                jz      .ifelse2
+.if1:
+.if2:
 .ifelse2:
 .ifelse1:       add     esp,4
                 push    0

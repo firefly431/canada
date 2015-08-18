@@ -1,6 +1,9 @@
 all: program program2 program.dot.png program2.dot.png
 
-%: %.o canada.o
+program: program.o canada.o
+	ld -e _start $+ -o $@
+
+program2: program2.o canada.o
 	ld -e _start $+ -o $@
 
 %.o: %.s
