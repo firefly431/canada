@@ -135,7 +135,8 @@ def generate(fn, out=None, margin=16, iwidth=8, width=40):
                       width=width).generate(ast)
 
 class CodeGenerator:
-    def __init__(self, out, margin=16, iwidth=8, width=40, linux=None):
+    def __init__(self, out, margin=16, iwidth=8, width=40, linux=None, c_prefix=None):
+        import os
         self.out = out
         self.margin = margin
         self.iwidth = iwidth
@@ -153,21 +154,28 @@ class CodeGenerator:
         self.exports = []
         self.externs = []
         self._label = None
+        # autodetect os stuff
+        sysname = os.uname()[0]
+        if sysname == 'Linux':
+            self.linux = True
+            self.c_prefix = '' # I think
+        elif sysname == 'FreeBSD':
+            self.linux = False
+            self.c_prefix = '' # I think
+        elif sysname == 'Darwin':
+            self.linux = False
+            self.c_prefix = '_'
+        else:
+            self.linux = None
+            self.c_prefix = None
         if linux is not None:
             self.linux = linux
-        else:
-            # autodetect
-            import os
-            sysname = os.uname()[0]
-            if sysname == 'Linux':
-                self.linux = True
-            elif sysname == 'FreeBSD':
-                self.linux = False
-            elif sysname == 'Darwin':
-                self.linux = False
-            else:
-                self.linux = False
-                raise Exception("Unknown uname: " + sysname)
+        if c_prefix is not None:
+            self.c_prefix = c_prefix
+        if self.linux is None:
+            raise Exception("Unknown if " + sysname + " is linux or not")
+        if self.c_prefix is None:
+            raise Exception("Unknown if " + sysname + " has prefix for C symbols")
     def warn(self, message, source):
         import sys
         sys.stderr.write('WARNING: ' + message + '\n')
@@ -733,7 +741,7 @@ class CodeGenerator:
                     raise ChangeThisNameError(repr(func) + " does not return a value", expr)
                 if isinstance(func, CFunction):
                     self.write('mov', 'eax,esp')
-                    self.write('and', 'esp,fffffff0h')
+                    self.write('and', 'esp,0fffffff0h')
                     pn = len(expr.args)
                     if (pn & 3) != 3:
                         self.write('sub', 'esp,' + str(4 * (3 - (pn & 3))))
@@ -777,10 +785,10 @@ class CodeGenerator:
             if ext.is_var:
                 self.gvars[ext.name] = GlobalStackEntry(ext.type, ename)
             else:
-                ename = '?@' + ext.name
                 if ext.c:
                     self.gfuncs[ext.name] = CFunction(ext)
                 else:
+                    ename = '?@' + ext.name
                     self.gfuncs[ext.name] = Function(ext.type, ext.name, ext.par_list)
             self.write('EXTERN ' + ename)
 

@@ -1,6 +1,14 @@
 extern void print_int(n);
 extern int my_int;
+extern "C" int puts(str);
 
 void main(argc, argv) {
     print_int(my_int);
+    puts("hello, world!");
+    print_int(argc);
+    while (argc > 0) {
+        argc = argc - 1;
+        puts(argv[argc]);
+        //puts(*(argv + argc * 4));
+    }
 }

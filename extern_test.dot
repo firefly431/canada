@@ -4,41 +4,121 @@ digraph parse_tree {
     node0 -> node1
     node0 -> node2
     node0 -> node3
+    node0 -> node4
     node1 [label = "extern"]
-    node1 -> node4
     node1 -> node5
     node1 -> node6
-    node4 [label = "void", shape = "diamond"]
-    node5 [label = "print_int", shape = "diamond"]
-    node6 [label = "['n']", shape = "diamond"]
+    node1 -> node7
+    node5 [label = "void", shape = "diamond"]
+    node6 [label = "print_int", shape = "diamond"]
+    node7 [label = "['n']", shape = "diamond"]
     node2 [label = "extern_var"]
-    node2 -> node7
     node2 -> node8
-    node7 [label = "PRIM_TYPE"]
-    node7 -> node9
-    node9 [label = "int", shape = "diamond"]
-    node8 [label = "my_int", shape = "diamond"]
-    node3 [label = "function"]
-    node3 -> node10
+    node2 -> node9
+    node8 [label = "PRIM_TYPE"]
+    node8 -> node10
+    node10 [label = "int", shape = "diamond"]
+    node9 [label = "my_int", shape = "diamond"]
+    node3 [label = "extern_c"]
     node3 -> node11
     node3 -> node12
     node3 -> node13
-    node10 [label = "void", shape = "diamond"]
-    node11 [label = "main", shape = "diamond"]
-    node12 [label = "par_list"]
-    node12 -> node14
-    node12 -> node15
-    node14 [label = "argc", shape = "diamond"]
-    node15 [label = "argv", shape = "diamond"]
-    node13 [label = "block"]
-    node13 -> node16
-    node16 [label = "function_call"]
-    node16 -> node17
-    node16 -> node18
-    node17 [label = "print_int", shape = "diamond"]
-    node18 [label = "arg_list"]
-    node18 -> node19
-    node19 [label = "IDENT"]
-    node19 -> node20
-    node20 [label = "my_int", shape = "diamond"]
+    node11 [label = "PRIM_TYPE"]
+    node11 -> node14
+    node14 [label = "int", shape = "diamond"]
+    node12 [label = "puts", shape = "diamond"]
+    node13 [label = "['str']", shape = "diamond"]
+    node4 [label = "function"]
+    node4 -> node15
+    node4 -> node16
+    node4 -> node17
+    node4 -> node18
+    node15 [label = "void", shape = "diamond"]
+    node16 [label = "main", shape = "diamond"]
+    node17 [label = "par_list"]
+    node17 -> node19
+    node17 -> node20
+    node19 [label = "argc", shape = "diamond"]
+    node20 [label = "argv", shape = "diamond"]
+    node18 [label = "block"]
+    node18 -> node21
+    node18 -> node22
+    node18 -> node23
+    node18 -> node24
+    node21 [label = "function_call"]
+    node21 -> node25
+    node21 -> node26
+    node25 [label = "print_int", shape = "diamond"]
+    node26 [label = "arg_list"]
+    node26 -> node27
+    node27 [label = "IDENT"]
+    node27 -> node28
+    node28 [label = "my_int", shape = "diamond"]
+    node22 [label = "function_call"]
+    node22 -> node29
+    node22 -> node30
+    node29 [label = "puts", shape = "diamond"]
+    node30 [label = "arg_list"]
+    node30 -> node31
+    node31 [label = "STRING_LIT"]
+    node31 -> node32
+    node32 [label = "hello, world!", shape = "diamond"]
+    node23 [label = "function_call"]
+    node23 -> node33
+    node23 -> node34
+    node33 [label = "print_int", shape = "diamond"]
+    node34 [label = "arg_list"]
+    node34 -> node35
+    node35 [label = "IDENT"]
+    node35 -> node36
+    node36 [label = "argc", shape = "diamond"]
+    node24 [label = "if_stmt"]
+    node24 -> node37
+    node24 -> node38
+    node37 [label = "bin_expr"]
+    node37 -> node39
+    node37 -> node40
+    node37 -> node41
+    node39 [label = ">", shape = "diamond"]
+    node40 [label = "IDENT"]
+    node40 -> node42
+    node42 [label = "argc", shape = "diamond"]
+    node41 [label = "INT_LIT"]
+    node41 -> node43
+    node43 [label = "0", shape = "diamond"]
+    node38 [label = "block"]
+    node38 -> node44
+    node38 -> node45
+    node44 [label = "bin_expr"]
+    node44 -> node46
+    node44 -> node47
+    node44 -> node48
+    node46 [label = "=", shape = "diamond"]
+    node47 [label = "IDENT"]
+    node47 -> node49
+    node49 [label = "argc", shape = "diamond"]
+    node48 [label = "bin_expr"]
+    node48 -> node50
+    node48 -> node51
+    node48 -> node52
+    node50 [label = "-", shape = "diamond"]
+    node51 [label = "IDENT"]
+    node51 -> node53
+    node53 [label = "argc", shape = "diamond"]
+    node52 [label = "INT_LIT"]
+    node52 -> node54
+    node54 [label = "1", shape = "diamond"]
+    node45 [label = "function_call"]
+    node45 -> node55
+    node45 -> node56
+    node55 [label = "puts", shape = "diamond"]
+    node56 [label = "arg_list"]
+    node56 -> node57
+    node57 [label = "array_acc"]
+    node57 -> node58
+    node57 -> node59
+    node58 [label = "argv", shape = "diamond"]
+    node59 [label = "IDENT"]
+    node59 -> node60
+    node60 [label = "argc", shape = "diamond"]
 }
