@@ -24,6 +24,6 @@ Dependencies
 TODO
 ----
 
-* Unary operators (`~`, `-`)
+* Attempt to make the * and # operators not require parens
 * External functions
 
