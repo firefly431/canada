@@ -40,7 +40,8 @@ class StackEntry:
         if isinstance(offset, str):
             return self.value(0, prefix)[:-1] + '+' + oprefix + offset + ']'
         offset += self.addr
-        return (('dword' if self.var.type == 'int' else 'byte') if prefix else '') + '[ebp' + ('+' + oprefix + str(offset) if offset > 0 else '-' + oprefix + str(-offset)) + ']'
+        pt = self.var.type.type if isinstance(self.var.type, PrimitiveType) else self.var.type.prim_type
+        return (('dword' if pt == 'int' else 'byte') if prefix else '') + '[ebp' + ('+' + oprefix + str(offset) if offset >= 0 else '-' + oprefix + str(-offset)) + ']'
     def __str__(self):
         return '<' + repr(self.var) + ' at ' + self.value() + '>'
 
@@ -53,9 +54,10 @@ class GlobalStackEntry(StackEntry):
         self.name = var.name
     def value(self, offset=0, prefix=True):
         oprefix = '4*' if self.var.type == 'int' else ''
+        pt = self.var.type.type if isinstance(self.var.type, PrimitiveType) else self.var.type.prim_type
         if isinstance(offset, str):
-            return (('dword' if self.var.type == 'int' else 'byte') if prefix else '') + '[' + self.name + '+' + oprefix + offset + ']'
-        return (('dword' if self.var.type == 'int' else 'byte') if prefix else '') + '[' + self.name + ('+' + oprefix + str(offset) if offset > 0 else '-' + oprefix + str(-offset)) + ']'
+            return (('dword' if pt == 'int' else 'byte') if prefix else '') + '[' + self.name + '+' + oprefix + offset + ']'
+        return (('dword' if pt == 'int' else 'byte') if prefix else '') + '[' + self.name + ('+' + oprefix + str(offset) if offset >= 0 else '-' + oprefix + str(-offset)) + ']'
 
 class StackFrame:
     def __init__(self, parameters):

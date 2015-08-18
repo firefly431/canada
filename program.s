@@ -7,8 +7,7 @@
                 mov     ebp,esp
                 sub     esp,16
                 sub     esp,0
-.while0:        mov     al,byte[ebp-16]
-                movsx   eax,al
+.while0:        mov     eax,dword[ebp-16]
                 push    eax
                 mov     ebx,10
                 pop     eax
@@ -19,8 +18,7 @@
                 jz      .endwhile0
                 jmp     .while0
 .endwhile0:     add     esp,0
-.if0:           mov     al,byte[ebp+8]
-                movsx   eax,al
+.if0:           mov     eax,dword[ebp+8]
                 push    eax
                 mov     ebx,0
                 pop     eax
@@ -37,8 +35,7 @@
                 int     80h
                 add     esp,16
 .ifelse0:       sub     esp,0
-.while1:        mov     al,byte[ebp-16]
-                movsx   eax,al
+.while1:        mov     eax,dword[ebp-16]
                 push    eax
                 mov     ebx,0
                 pop     eax
@@ -47,8 +44,7 @@
                 movzx   eax,al
                 cmp     eax,0
                 jz      .endwhile1
-.if1:           mov     al,byte[ebp+8]
-                movsx   eax,al
+.if1:           mov     eax,dword[ebp+8]
                 push    eax
                 mov     ebx,0
                 pop     eax
@@ -61,13 +57,11 @@
 .ifelse1:       jmp     .while1
 .endwhile1:     add     esp,0
                 push    9
-                mov     bl,byte[ebp-16]
-                movsx   ebx,bl
+                mov     ebx,dword[ebp-16]
                 pop     eax
                 sub     eax,ebx
                 push    eax
-                mov     al,byte[ebp-16]
-                movsx   eax,al
+                mov     eax,dword[ebp-16]
                 push    eax
                 mov     ebx,1
                 pop     eax
@@ -91,11 +85,9 @@
                 mov     ebp,esp
                 sub     esp,8
                 sub     esp,0
-.while2:        mov     al,byte[ebp-4]
-                movsx   eax,al
+.while2:        mov     eax,dword[ebp-4]
                 push    eax
-                mov     bl,byte[num-0]
-                movsx   ebx,bl
+                mov     ebx,dword[num+0]
                 pop     eax
                 cmp     eax,ebx
                 setle   al
@@ -104,8 +96,7 @@
                 jz      .endwhile2
                 jmp     .while2
 .endwhile2:     add     esp,0
-                mov     al,byte[ebp-8]
-                movsx   eax,al
+                mov     eax,dword[ebp-8]
                 push    eax
                 call    ?@print_int
                 add     esp,8

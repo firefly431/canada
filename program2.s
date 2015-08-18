@@ -6,8 +6,7 @@
                 mov     ebp,esp
                 sub     esp,0
                 sub     esp,4
-.while0:        mov     al,byte[ebp+8]
-                movsx   eax,al
+.while0:        mov     eax,dword[ebp+8]
                 push    eax
                 mov     ebx,5
                 pop     eax
@@ -16,8 +15,7 @@
                 movzx   eax,al
                 cmp     eax,0
                 jz      .endwhile0
-.if0:           mov     al,byte[ebp+8]
-                movsx   eax,al
+.if0:           mov     eax,dword[ebp+8]
                 push    eax
                 mov     ebx,3
                 pop     eax
@@ -25,8 +23,7 @@
                 setl    al
                 movzx   eax,al
                 push    eax
-                mov     al,byte[ebp+8]
-                movsx   eax,al
+                mov     eax,dword[ebp+8]
                 push    eax
                 mov     eax,8
                 pop     ebx
@@ -41,8 +38,7 @@
 .ifelse0:       jmp     .endwhile0
                 jmp     .while0
 .endwhile0:     add     esp,4
-                mov     al,byte[ebp+8]
-                movsx   eax,al
+                mov     eax,dword[ebp+8]
                 push    eax
                 jmp     .return
                 add     esp,0
