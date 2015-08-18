@@ -124,18 +124,24 @@ class ArrayLiteral(FakeTuple):
         return '{' + ', '.join(map(repr, self.elements)) + '}'
 
 class Function(FakeTuple):
-    def __init__(self, name_or_vardecl, header_and_body):
+    def __init__(self, name_or_vardecl, header_and_body, par_list = None, statement = None):
         """
         :type name_or_vardecl: str or VariableDeclaration
         :type header_and_body: tuple
         """
-        if isinstance(name_or_vardecl, VariableDeclaration):
-            self.type = name_or_vardecl.type
-            self.name = name_or_vardecl.name
+        if par_list:
+            self.type = name_or_vardecl
+            self.name = header_and_body
+            self.par_list = par_list
+            self.statement = statement
         else:
-            self.type = Void()
-            self.name = name_or_vardecl
-        self.par_list, self.statement = header_and_body
+            if isinstance(name_or_vardecl, VariableDeclaration):
+                self.type = name_or_vardecl.type
+                self.name = name_or_vardecl.name
+            else:
+                self.type = Void()
+                self.name = name_or_vardecl
+            self.par_list, self.statement = header_and_body
         FakeTuple.__init__(self, ('function', [self.type, self.name, ('par_list', self.par_list), self.statement]))
     def __repr__(self):
         return repr(self.type) + ' ' + self.name + '(' + ', '.join(self.par_list) + ') ' + repr(self.statement)

@@ -1,7 +1,7 @@
 import functools
 import canadaparse
 
-from canadaparse import Program, GlobalDeclaration, GlobalVariable, VariableType, PrimitiveType, Void, ArrayDeclaration, ArrayLiteral, Function, BlockStatement, Statement, EmptyStatement, IfStatement, WhileLoop, BreakStatement, ContinueStatement, ReturnStatement, VariableDeclaration, Block, Expression, ExpressionStatement, Literal, BinaryExpression, FunctionCall, LValue, SimpleLValue, Identifier, Dereference, Address, ArrayAccess, Unary, Export
+from canadaparse import Program, GlobalDeclaration, GlobalVariable, VariableType, PrimitiveType, Void, ArrayDeclaration, ArrayLiteral, Function, BlockStatement, Statement, EmptyStatement, IfStatement, WhileLoop, BreakStatement, ContinueStatement, ReturnStatement, VariableDeclaration, Block, Expression, ExpressionStatement, Literal, BinaryExpression, FunctionCall, LValue, SimpleLValue, Identifier, Dereference, Address, ArrayAccess, Unary, Export, Extern
 from syscall import syscalls
 
 import os
@@ -40,6 +40,11 @@ class ChangeThisNameError(Exception):
         super().__init__(self, message)
         self.source = source
 
+class CFunction(Function):
+    def __init__(self, ext):
+        ":type ext: Extern"
+        Function.__init__(self, ext.type, ext.name, ext.par_list)
+
 class StackEntry:
     def __init__(self, var, addr):
         """
@@ -59,12 +64,12 @@ class StackEntry:
         return '<' + repr(self.var) + ' at ' + self.value() + '>'
 
 class GlobalStackEntry(StackEntry):
-    def __init__(self, var):
+    def __init__(self, type, name):
         """
         :type var: GlobalVariable
         """
-        super().__init__(VariableDeclaration(var.var_type, var.name), var.name)
-        self.name = var.name
+        super().__init__(VariableDeclaration(type, name), name)
+        self.name = name
     def value(self, offset=0, prefix=True):
         oprefix = '4*' if self.var.type == 'int' else ''
         pt = self.var.type.type if isinstance(self.var.type, PrimitiveType) else self.var.type.prim_type
@@ -146,6 +151,7 @@ class CodeGenerator:
         self.functions = []
         self.variables = []
         self.exports = []
+        self.externs = []
         self._label = None
         if linux is not None:
             self.linux = linux
@@ -212,18 +218,14 @@ class CodeGenerator:
         self.variables = [d for d in ast.decls if isinstance(d, GlobalVariable)]
         self.functions = [d for d in ast.decls if isinstance(d, Function)]
         self.exports = [d for d in ast.decls if isinstance(d, Export)]
-        assert all(sum((x in self.variables, x in self.functions, x in self.exports)) == 1 for x in ast.decls)
-        self.gvars = {v.name: v for v in self.variables}
+        self.externs = [d for d in ast.decls if isinstance(d, Extern)]
+        assert all(sum((x in self.variables, x in self.functions, x in self.exports, x in self.externs)) == 1 for x in ast.decls)
+        self.gvars = {v.name: GlobalStackEntry(v.var_type, v.name) for v in self.variables}
         self.gfuncs = {v.name: v for v in self.functions}
         self.generate_exports()
+        self.generate_externs()
         self.generate_text()
         self.generate_data()
-        for exp in self.exports:
-            print(repr(exp))
-        for name, var in sorted(self.gvars.items()):
-            print(repr(var))
-        for name, func in sorted(self.gfuncs.items()):
-            print(repr(func))
     def string(self, s):
         i = self.stringc
         self.stringc += 1
@@ -260,7 +262,6 @@ class CodeGenerator:
         """
         if v.name == '_start':
             raise ChangeThisNameError('Reserved name', v)
-        self.gvars[v.name] = v
         prim_type = v.var_type if isinstance(v.var_type, PrimitiveType) else v.var_type.prim_type
         dd = 'db' if prim_type == 'char' else 'dd'
         if isinstance(v.var_type, ArrayDeclaration):
@@ -730,11 +731,25 @@ class CodeGenerator:
                     raise ChangeThisNameError("Incorrect number of arguments to " + repr(func), expr)
                 if isinstance(func.type, Void) and push:
                     raise ChangeThisNameError(repr(func) + " does not return a value", expr)
+                if isinstance(func, CFunction):
+                    self.write('mov', 'eax,esp')
+                    self.write('and', 'esp,fffffff0h')
+                    pn = len(expr.args)
+                    if (pn & 3) != 3:
+                        self.write('sub', 'esp,' + str(4 * (3 - (pn & 3))))
+                    self.write('push', 'eax')
                 for arg in reversed(expr.args):
                     self.push_expr(arg, stack)
-                self.write('call', '?@' + fname)
-                if not isinstance(func.type, Void) and not push:
-                    self.write('add', 'esp,4')
+                if isinstance(func, CFunction):
+                    # ebx is callee-save
+                    self.write('call', '_' + fname)
+                    self.write('mov', 'esp,[esp+' + str(4*pn) + ']')
+                    if push:
+                        self.write('push', 'eax')
+                else:
+                    self.write('call', '?@' + fname)
+                    if not isinstance(func.type, Void) and not push:
+                        self.write('add', 'esp,4')
         elif isinstance(expr, Literal):
             self.write('push', str(self.value('int', expr)))
         else:
@@ -749,8 +764,22 @@ class CodeGenerator:
         if name in stack:
             return stack[name]
         if name in self.gvars:
-            return GlobalStackEntry(self.gvars[name])
+            return self.gvars[name]
         raise ChangeThisNameError("No such variable: " + name, None)
+    def generate_externs(self):
+        for ext in self.externs:
+            ename = ext.name
+            if ext.c is not None:
+                if ext.c != 'C' and ext.c != 'c':
+                    raise ChangeThisNameError("Invalid extern", ext)
+                ename = '_' + ename
+            if ext.is_var:
+                self.gvars[ext.name] = GlobalStackEntry(ext.type, ename)
+            else:
+                if ext.c:
+                    self.gfuncs[ext.name] = CFunction(ext)
+                else:
+                    self.gfuncs[ext.name] = Function(ext.type, ename, ext.par_list)
 
 if __name__ == '__main__':
     import sys
