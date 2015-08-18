@@ -24,6 +24,4 @@ Dependencies
 TODO
 ----
 
-* External functions
-* Call C functions (stack alignment)
-
+All done!
