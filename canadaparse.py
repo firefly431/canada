@@ -343,6 +343,31 @@ class Export(GlobalDeclaration):
     def __repr__(self):
         return 'export ' + self.name + ('();' if self.function else ';')
 
+class Extern(GlobalDeclaration):
+    def __init__(self, decl, c = None):
+        """
+        :type decl: VariableDeclaration or (VariableDeclaration or str, tuple)
+        :type c: bool
+        """
+        if isinstance(decl, VariableDeclaration):
+            self.name = decl.name
+            self.type = decl.type
+            self.par_list = None
+            self.is_var = True
+        else:
+            self.is_var = False
+            if isinstance(decl[0], VariableDeclaration):
+                self.name = decl[0].name
+                self.type = decl[0].type
+            else:
+                self.name = decl[0]
+                self.type = Void()
+            self.par_list = decl[1]
+        self.c = c
+        FakeTuple.__init__(self, ('extern' + ('_c' if self.c else '') + ('_var' if self.is_var else ''), [self.type, self.name] if self.is_var else [self.type, self.name, self.par_list]))
+    def __repr__(self):
+        return 'extern ' + ('"C" ' if self.c else '') + repr(self.type) + ' ' + self.name + ('(' + ', '.join(map(repr, self.par_list)) + ')' if self.par_list is not None else '') + ';'
+
 # return ('program', [*global_decl...])
 def p_program(p):
     '''
@@ -360,6 +385,7 @@ def p_global_decl(p):
     global_decl : global_var
                 | function
                 | export
+                | extern
     '''
     p[0] = p[1]
 
@@ -661,6 +687,27 @@ def p_export(p):
     '''
     p[0] = Export(p[2], len(p) == 6)
 
+def p_extern(p):
+    '''
+    extern : EXTERN extern_decl
+           | EXTERN STRING_LIT extern_decl
+    '''
+    p[0] = Extern(p[2] if len(p) == 3 else p[3], None if len(p) == 3 else p[2])
+
+def p_extern_decl(p):
+    '''
+    extern_decl : var_decl ';'
+                | extern_func
+    '''
+    p[0] = p[1]
+
+def p_extern_func(p):
+    '''
+    extern_func : var_decl '(' par_list ')' ';'
+                | VOID IDENT '(' par_list ')' ';'
+    '''
+    p[0] = (p[1] if len(p) == 6 else p[2], p[3] if len(p) == 6 else p[4])
+
 # returns ('array_acc', [IDENT, *expr])
 def p_array_acc(p):
     '''
@@ -676,8 +723,8 @@ def p_error(p):
     else:
         print("Syntax error at EOF")
 
-lexer = canadalex.lexer;
-parser = ply.yacc.yacc();
+lexer = canadalex.lexer
+parser = ply.yacc.yacc()
 
 def parse(code):
     return parser.parse(code, lexer=lexer)

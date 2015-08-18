@@ -12,6 +12,7 @@ reserved = (
     'continue',
     'return',
     'export',
+    'extern',
 )
 
 types = (
