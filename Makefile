@@ -1,18 +1,22 @@
-all: program program2 program.dot.png program2.dot.png
+SOURCES := $(wildcard *.ca)
+DOTS := $(SOURCES:.ca=.dot)
+DOTPNGS := $(SOURCES:.ca=.dot.png)
+ASSEMBLIES := $(SOURCES:.ca=.s)
+OBJECTS := $(SOURCES:.ca=.o)
+BINARIES :=  $(SOURCES:%.ca=bin/%)
 
-program: program.o canada.o
-	ld -e _start $+ -o $@
+all: $(BINARIES) $(DOTPNGS) $(DOTS) $(ASSEMBLIES)
 
-program2: program2.o canada.o
+bin/%: %.o canada.o
 	ld -e _start $+ -o $@
 
 %.o: %.s
 	nasm -o $@ -f macho $<
 
-%.s: %.samp canadacodegen.py
+%.s: %.ca canadacodegen.py
 	python3 canadacodegen.py $<
 
-%.dot: %.samp canadaparse.py
+%.dot: %.ca canadaparse.py
 	python3 canadaparse.py $<
 
 %.dot.png: %.dot

@@ -3,16 +3,16 @@ Canada Compiler
 
 Canada is a C-like language I made for fun to practice writing a compiler.
 
-A sample program can be found in the file [program.samp](program.samp).
+A sample program can be found in the file [factorial.ca](factorial.ca).
 The abstract syntax tree for the file looks like:  
-![Abstract syntax tree for program.samp](program.dot.png)
+![Abstract syntax tree for program.samp](factorial.dot.png)
 
 Status
 ------
 
 Lexer: *done*  
 Parser: *done*  
-Code Generator: **NOT DONE**
+Code Generator: *done*
 
 Dependencies
 ------------
@@ -24,7 +24,5 @@ Dependencies
 TODO
 ----
 
-* Implement short-circuiting in conditional
-* Optimize conditionals
 * Unary operators (`~`, `-`)
 

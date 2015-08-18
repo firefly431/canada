@@ -5,6 +5,5 @@ __pycache__
 parsetab.py
 parser.out
 *.o
+bin
 tools
-program
-program2
