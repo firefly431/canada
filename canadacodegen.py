@@ -585,7 +585,17 @@ class CodeGenerator:
                 if isinstance(expr.lhs, SimpleLValue):
                     lval = self.simple_lvalue(expr.lhs, ireg, stack)
                     self.write('pop', reg)
-                    self.write('mov', lval + ',' + reg)
+                    if lval.startswith('byte'):
+                        if reg in int_to_char:
+                            creg = int_to_char[reg]
+                            self.write('movsx', reg + ',' + creg)
+                        else:
+                            creg = 'al'
+                            self.write('mov', 'eax', + reg)
+                            self.write('movsx', reg + ',al')
+                        self.write('mov', lval + ',' + creg)
+                    else:
+                        self.write('mov', lval + ',' + reg)
                 else:
                     assert isinstance(expr.lhs, Dereference)
                     self.reg_expr(expr.lhs.expr, ireg, stack)

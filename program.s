@@ -22,7 +22,8 @@
                 push    0
                 mov     ebx,dword[ebp-16]
                 pop     eax
-                mov     byte[ebp-12+ebx],eax
+                movsx   eax,al
+                mov     byte[ebp-12+ebx],al
                 mov     eax,dword[ebp-16]
                 push    eax
                 mov     ebx,1
@@ -72,7 +73,8 @@
                 push    eax
                 mov     ebx,dword[ebp-16]
                 pop     eax
-                mov     byte[ebp-12+ebx],eax
+                movsx   eax,al
+                mov     byte[ebp-12+ebx],al
                 mov     eax,dword[ebp+8]
                 push    eax
                 mov     ebx,10
