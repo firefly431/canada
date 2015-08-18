@@ -9,6 +9,7 @@ from canadalex import tokens
 start = 'program'
 
 precedence = (
+    ('left', ';'),
     ('left', 'IF'), # resolve dangling else
     ('left', 'ELSE'),
     ('right', 'EQ'),
@@ -584,7 +585,7 @@ def p_expr(p):
     expr : bin_expr
          | function_call
          | '(' expr ')'
-         | lvalue
+         | lvalue %prec ';'
          | address
          | literal
          | '!' expr %prec UNARY
@@ -641,10 +642,10 @@ def p_lvalue(p):
 # returns ('deref', ['*' or '#', *expr])
 def p_deref(p):
     '''
-    deref : '*' '(' expr ')'
-          | '#' '(' expr ')'
+    deref : '*' expr %prec UNARY
+          | '#' expr %prec UNARY
     '''
-    p[0] = Dereference(p[3], p[1] == '#')
+    p[0] = Dereference(p[2], p[1] == '#')
 
 # returns ('address', [*simple_lvalue])
 def p_address(p):
