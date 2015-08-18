@@ -179,5 +179,5 @@
                 add     esp,8
                 jmp     ebx
                 SECTION .data
-num:            dw      5
+num:            dd      5
 ??sl0:          db      '-'

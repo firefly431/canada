@@ -249,7 +249,7 @@ class CodeGenerator:
             raise ChangeThisNameError('Reserved name', v)
         self.gvars[v.name] = v
         prim_type = v.var_type if isinstance(v.var_type, PrimitiveType) else v.var_type.prim_type
-        dd = 'db' if prim_type == 'char' else 'dw'
+        dd = 'db' if prim_type == 'char' else 'dd'
         if isinstance(v.var_type, ArrayDeclaration):
             arr_size = v.var_type.length
             if not isinstance(v.value, ArrayLiteral):
