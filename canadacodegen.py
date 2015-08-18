@@ -508,8 +508,14 @@ class CodeGenerator:
                 elif false:
                     self.write(rel_ops_not[cond.op], false)
             else:
-                assert cond.op in ('&&', '||')
                 # short-circuit
+                if cond.op == '&&':
+                    self.generate_condition(cond.lhs, stack, None, false)
+                    self.generate_condition(cond.rhs, stack, true, false)
+                else:
+                    assert cond.op == '||'
+                    self.generate_condition(cond.lhs, stack, true, None)
+                    self.generate_condition(cond.rhs, stack, true, false)
         else:
             # otherwise use a cmp
             self.reg_expr(cond, 'eax', stack)
