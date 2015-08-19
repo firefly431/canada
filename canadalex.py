@@ -25,6 +25,7 @@ tokens = [
     'CHAR_LIT',
     'STRING_LIT',
     'IDENT',
+    'ELLIPSIS',
     'SYSCALL',
     'PRIM_TYPE',
     'VOID',
@@ -64,6 +65,11 @@ def t_IDENT(t):
         t.type = 'PRIM_TYPE'
     elif t.value == 'void':
         t.type = 'VOID'
+    return t
+
+def t_ELLIPSIS(t):
+    r'\.\.\.'
+    t.value = Ellipsis
     return t
 
 t_SYSCALL = '|'.join(map(re.escape, syscalls.keys()))

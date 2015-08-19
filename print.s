@@ -11,7 +11,7 @@
                 mov     ebx,-2147483648
                 pop     eax
                 cmp     eax,ebx
-                jne     .ifelse0
+                jne     .ifend0
                 push    12
                 push    ??sl0
                 push    1
@@ -21,13 +21,13 @@
                 add     esp,16
                 push    eax
                 jmp     .return
-.ifelse0:
+.ifend0:
 .if1:           mov     eax,dword[ebp+8]
                 push    eax
                 mov     ebx,0
                 pop     eax
                 cmp     eax,ebx
-                jge     .ifelse1
+                jge     .ifend1
                 push    45
                 pop     eax
                 movsx   eax,al
@@ -47,7 +47,7 @@
                 push    eax
                 pop     eax
                 mov     dword[ebp+8],eax
-.ifelse1:
+.ifend1:
 .while0:        mov     eax,dword[ebp-16]
                 push    eax
                 mov     ebx,10
@@ -116,9 +116,9 @@
                 mov     ebx,0
                 pop     eax
                 cmp     eax,ebx
-                jne     .ifelse2
+                jne     .ifend2
                 jmp     .endwhile1
-.ifelse2:       jmp     .while1
+.ifend2:        jmp     .while1
 .endwhile1:     push    9
                 mov     ebx,dword[ebp-16]
                 pop     eax

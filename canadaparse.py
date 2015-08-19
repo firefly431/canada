@@ -360,6 +360,7 @@ class Extern(GlobalDeclaration):
             self.type = decl.type
             self.par_list = None
             self.is_var = True
+            self.varargs = False
         else:
             self.is_var = False
             if isinstance(decl[0], VariableDeclaration):
@@ -368,11 +369,11 @@ class Extern(GlobalDeclaration):
             else:
                 self.name = decl[0]
                 self.type = Void()
-            self.par_list = decl[1]
+            self.varargs, self.par_list = decl[1]
         self.c = c
         FakeTuple.__init__(self, ('extern' + ('_c' if self.c else '') + ('_var' if self.is_var else ''), [self.type, self.name] if self.is_var else [self.type, self.name, self.par_list]))
     def __repr__(self):
-        return 'extern ' + ('"C" ' if self.c else '') + repr(self.type) + ' ' + self.name + ('(' + ', '.join(map(repr, self.par_list)) + ')' if self.par_list is not None else '') + ';'
+        return 'extern ' + ('"C" ' if self.c else '') + repr(self.type) + ' ' + self.name + ('(' + ', '.join(map(repr, self.par_list + ([Ellipsis] if self.varargs else []))) + ')' if not self.is_var else '') + ';'
 
 # return ('program', [*global_decl...])
 def p_program(p):
@@ -709,10 +710,24 @@ def p_extern_decl(p):
 
 def p_extern_func(p):
     '''
-    extern_func : var_decl '(' par_list ')' ';'
-                | VOID IDENT '(' par_list ')' ';'
+    extern_func : var_decl '(' extern_par_list ')' ';'
+                | VOID IDENT '(' extern_par_list ')' ';'
     '''
     p[0] = (p[1] if len(p) == 6 else p[2], p[3] if len(p) == 6 else p[4])
+
+def p_extern_par_list(p):
+    '''
+    extern_par_list : par_list
+                    | par_list ',' ELLIPSIS
+                    | ELLIPSIS
+    '''
+    if len(p) == 4:
+        p[0] = (True, p[1])
+    else:
+        if p[1] == Ellipsis:
+            p[0] = (True, [])
+        else:
+            p[0] = (False, p[1])
 
 # returns ('array_acc', [IDENT, *expr])
 def p_array_acc(p):

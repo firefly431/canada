@@ -44,6 +44,7 @@ class CFunction(Function):
     def __init__(self, ext):
         ":type ext: Extern"
         Function.__init__(self, ext.type, ext.name, ext.par_list)
+        self.varargs = ext.varargs
 
 class StackEntry:
     def __init__(self, var, addr):
@@ -397,13 +398,16 @@ class CodeGenerator:
         if isinstance(stmt, IfStatement):
             l_if = '.if' + str(self.ifc)
             l_else = '.ifelse' + str(self.ifc)
+            l_end = '.ifend' + str(self.ifc)
             self.ifc += 1
             self.label(l_if)
-            self.generate_condition(stmt.condition, stack, false=l_else)
+            self.generate_condition(stmt.condition, stack, false=l_else if stmt.else_clause else l_end)
             self.generate_statement(stmt.statement, stack, False, clabel, blabel)
-            self.label(l_else)
             if stmt.else_clause:
+                self.write('jmp', l_end)
+                self.label(l_else)
                 self.generate_statement(stmt.else_clause, stack, False, clabel, blabel)
+            self.label(l_end)
         elif isinstance(stmt, WhileLoop):
             l_begin = '.while' + str(self.whilec)
             l_end = '.endwhile' + str(self.whilec)
@@ -735,8 +739,6 @@ class CodeGenerator:
                     func = self.gfuncs[fname]
                 except KeyError:
                     raise ChangeThisNameError("Function does not exist: " + fname, expr)
-                if len(func.par_list) != len(expr.args):
-                    raise ChangeThisNameError("Incorrect number of arguments to " + repr(func), expr)
                 if isinstance(func.type, Void) and push:
                     raise ChangeThisNameError(repr(func) + " does not return a value", expr)
                 if isinstance(func, CFunction):
@@ -746,6 +748,12 @@ class CodeGenerator:
                     if (pn & 3) != 3:
                         self.write('sub', 'esp,' + str(4 * (3 - (pn & 3))))
                     self.write('push', 'eax')
+                if not isinstance(func, CFunction) or not func.varargs:
+                    if len(func.par_list) != len(expr.args):
+                        raise ChangeThisNameError("Incorrect number of arguments to " + repr(func), expr)
+                else:
+                    if len(expr.args) < len(func.par_list):
+                        raise ChangeThisNameError("Not enough arguments to " + repr(func), expr)
                 for arg in reversed(expr.args):
                     self.push_expr(arg, stack)
                 if isinstance(func, CFunction):
@@ -788,6 +796,8 @@ class CodeGenerator:
                 if ext.c:
                     self.gfuncs[ext.name] = CFunction(ext)
                 else:
+                    if ext.varargs:
+                        raise ChangeThisNameError("Native functions do not support varargs")
                     ename = '?@' + ext.name
                     self.gfuncs[ext.name] = Function(ext.type, ext.name, ext.par_list)
             self.write('EXTERN ' + ename)

@@ -2,6 +2,7 @@
                 EXTERN ?@print_int
                 EXTERN _my_int
                 EXTERN _puts
+                EXTERN _printf
                 SECTION .text
 ?@main:         push    ebp
                 mov     ebp,esp
@@ -20,9 +21,34 @@
                 push    ??sl0
                 call    _puts
                 mov     esp,[esp+4]
+.if0:           mov     eax,dword[ebp+8]
+                push    eax
+                mov     ebx,2
+                pop     eax
+                cmp     eax,ebx
+                jne     .ifelse0
+                mov     eax,esp
+                and     esp,0fffffff0h
+                sub     esp,8
+                push    eax
+                push    ??sl1
+                call    _puts
+                mov     esp,[esp+4]
+                jmp     .ifend0
+.ifelse0:       mov     eax,esp
+                and     esp,0fffffff0h
+                sub     esp,4
+                push    eax
                 mov     eax,dword[ebp+8]
                 push    eax
-                call    ?@print_int
+                mov     ebx,1
+                pop     eax
+                sub     eax,ebx
+                push    eax
+                push    ??sl2
+                call    _printf
+                mov     esp,[esp+8]
+.ifend0:
 .while0:        mov     eax,dword[ebp+8]
                 push    eax
                 mov     ebx,0
@@ -70,4 +96,6 @@
                 add     esp,8
                 jmp     ebx
                 SECTION .data
-??sl0:          db      `hello, world!`
+??sl0:          db      `hello, world!\0`
+??sl1:          db      `We have 1 argument.\0`
+??sl2:          db      `We have %d arguments.\n\0`

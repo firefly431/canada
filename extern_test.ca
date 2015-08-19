@@ -1,13 +1,18 @@
 extern void print_int(n);
 extern "C" int my_int;
 extern "C" int puts(str);
+extern "C" int printf(str, ...);
 
 void main(argc, argv) {
     int a;
     a = argc;
     print_int(my_int);
-    puts("hello, world!");
-    print_int(argc);
+    puts("hello, world!\0");
+    // print_int(argc);
+    if (argc == 2)
+        puts("We have 1 argument.\0");
+    else
+        printf("We have %d arguments.\n\0", argc - 1);
     while (argc > 0) {
         argc = argc - 1;
         // argv[argc] does not work
