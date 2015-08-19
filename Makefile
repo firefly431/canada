@@ -13,12 +13,13 @@ ifeq ($(shell uname -s),FreeBSD)
 endif
 ifeq ($(shell uname -s),Darwin)
 	OUTPUT_FORMAT := macho
+	LDFLAGS := -macosx_version_min 10.6
 endif
 ifndef OUTPUT_FORMAT
 	$(error Unknown uname, define OUTPUT_FORMAT in Makefile)
 endif
 
-all: $(BINARIES) $(DOTPNGS) $(DOTS) $(ASSEMBLIES)
+all: $(BINARIES) $(DOTPNGS) $(ASSEMBLIES)
 
 bin/factorial: print.o
 
@@ -26,7 +27,7 @@ bin/extern_test: print.o canada_c.o extern_test.o extern_c.c
 	$(CC) -arch i386 $^ -o $@
 
 bin/%: %.o canada.o
-	ld -e _start $^ -o $@
+	ld $(LDFLAGS) -e _start $^ -o $@
 
 %.o: %.s
 	nasm -o $@ -f $(OUTPUT_FORMAT) $<
@@ -39,3 +40,8 @@ bin/%: %.o canada.o
 
 %.dot.png: %.dot
 	dot -Tpng -o $@ $<
+
+clean:
+	rm -f $(OBJECTS) $(ASSEMBLIES) $(BINARIES) $(DOTS) $(DOTPNGS)
+
+.PHONY: clean

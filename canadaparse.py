@@ -22,21 +22,12 @@ precedence = (
     ('right', 'UNARY'),
 )
 
-shownwarning = False
-
 class FakeTuple:
     def __init__(self, elements):
         if isinstance(elements, FakeTuple):
             elements = elements._tuple_elements
         self._tuple_elements = elements
     def __getitem__(self, key):
-        global shownwarning
-        if not shownwarning:
-            shownwarning = True
-            sys.stderr.write("*** tuple accessed: " + str(self._tuple_elements) +
-                  " [" + str(key) + "]\n")
-            import traceback
-            traceback.print_stack()
         return self._tuple_elements.__getitem__(key)
     def __repr__(self):
         return type(self).__name__ + ': ' + str(self._tuple_elements)
@@ -144,7 +135,11 @@ class Function(FakeTuple):
             self.par_list, self.statement = header_and_body
         FakeTuple.__init__(self, ('function', [self.type, self.name, ('par_list', self.par_list), self.statement]))
     def __repr__(self):
-        return repr(self.type) + ' ' + self.name + '(' + ', '.join(self.par_list) + ') ' + repr(self.statement)
+        return repr(self.type) + ' ' + self.name + '(' + ', '.join(self.parameters()) + ') ' + repr(self.statement)
+    def parameters(self):
+        return self.par_list
+    def prototype(self):
+        return repr(self.type) + ' ' + self.name + '(' + ', '.join(self.parameters()) + ')'
 
 class BlockStatement(FakeTuple): pass
 class Statement(BlockStatement): pass

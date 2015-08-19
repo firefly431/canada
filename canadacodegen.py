@@ -37,7 +37,7 @@ rel_ops_not = {
 
 class CompilationError(Exception):
     def __init__(self, message, source):
-        super().__init__(self, message)
+        super().__init__(message)
         self.source = source
 
 class CFunction(Function):
@@ -45,6 +45,8 @@ class CFunction(Function):
         ":type ext: Extern"
         Function.__init__(self, ext.type, ext.name, ext.par_list)
         self.varargs = ext.varargs
+    def parameters(self):
+        return self.par_list + ['...']
 
 class StackEntry:
     def __init__(self, var, addr):
@@ -750,10 +752,10 @@ class CodeGenerator:
                     self.write('push', 'eax')
                 if not isinstance(func, CFunction) or not func.varargs:
                     if len(func.par_list) != len(expr.args):
-                        raise CompilationError("Incorrect number of arguments to " + repr(func), expr)
+                        raise CompilationError("Incorrect number of arguments to " + func.prototype(), expr)
                 else:
                     if len(expr.args) < len(func.par_list):
-                        raise CompilationError("Not enough arguments to " + repr(func), expr)
+                        raise CompilationError("Not enough arguments to " + func.prototype(), expr)
                 for arg in reversed(expr.args):
                     self.push_expr(arg, stack)
                 if isinstance(func, CFunction):
@@ -805,4 +807,10 @@ class CodeGenerator:
 if __name__ == '__main__':
     import sys
     for fn in sys.argv[1:]:
-        generate(fn)
+        try:
+            generate(fn)
+        except CompilationError as err:
+            sys.stdout.write("ERROR in " + fn + ": ")
+            sys.stdout.write(str(err))
+            sys.stdout.write('\n')
+            sys.exit(1)
