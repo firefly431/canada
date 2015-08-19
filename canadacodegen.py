@@ -35,7 +35,7 @@ rel_ops_not = {
     '!=': 'e',
 }
 
-class ChangeThisNameError(Exception):
+class CompilationError(Exception):
     def __init__(self, message, source):
         super().__init__(self, message)
         self.source = source
@@ -257,20 +257,20 @@ class CodeGenerator:
         else:
             if v.type == 'INT_LIT':
                 if v.value > 255:
-                    raise ChangeThisNameError("%d too big to fit in char" %
+                    raise CompilationError("%d too big to fit in char" %
                                       v.value, v)
                 return v.value
             elif v.type == 'CHAR_LIT':
                 return ord(v.value)
             else:
-                raise ChangeThisNameError("String literal cannot be a char", v)
+                raise CompilationError("String literal cannot be a char", v)
     def generate_variable(self, v):
         """
         Generate the instructions for a variable
         :type v: GlobalVariable
         """
         if v.name == '_start':
-            raise ChangeThisNameError('Reserved name', v)
+            raise CompilationError('Reserved name', v)
         prim_type = v.var_type if isinstance(v.var_type, PrimitiveType) else v.var_type.prim_type
         dd = 'db' if prim_type == 'char' else 'dd'
         if isinstance(v.var_type, ArrayDeclaration):
@@ -282,18 +282,18 @@ class CodeGenerator:
                         arr_size = lit_len
                         v.var_type.length = lit_len
                     if lit_len != arr_size:
-                        raise ChangeThisNameError("String literal wrong "
+                        raise CompilationError("String literal wrong "
                                           "size", v)
                     self.write('db', "`" + v.value.value + "`", label=v.name)
                 else:
-                    raise ChangeThisNameError("Array not initialized with "
+                    raise CompilationError("Array not initialized with "
                                       "array literal", v)
             else:
                 if not arr_size:
                     arr_size = len(v.value.elements)
                     v.var_type.length = arr_size
                 if len(v.value.elements) != arr_size:
-                    raise ChangeThisNameError("Array literal wrong size", v)
+                    raise CompilationError("Array literal wrong size", v)
                 self.write(dd, ','.join(map(str, map(
                     functools.partial(self.value, prim_type), v.value.elements))),
                     label=v.name)
@@ -323,7 +323,7 @@ class CodeGenerator:
         """
         if f.name == 'main':
             if len(f.par_list) != 2:
-                raise ChangeThisNameError("Main must have 2 parameters", f)
+                raise CompilationError("Main must have 2 parameters", f)
         self.gfuncs[f.name] = f
         stack = StackFrame(f.par_list)
         self.label('?@' + f.name)
@@ -433,11 +433,11 @@ class CodeGenerator:
                 self.label(l_end)
         elif isinstance(stmt, BreakStatement):
             if not blabel:
-                raise ChangeThisNameError("Nowhere to break", stmt)
+                raise CompilationError("Nowhere to break", stmt)
             self.write('jmp', blabel)
         elif isinstance(stmt, ContinueStatement):
             if not clabel:
-                raise ChangeThisNameError("Nowhere to continue", stmt)
+                raise CompilationError("Nowhere to continue", stmt)
             self.write('jmp', clabel)
         elif isinstance(stmt, ReturnStatement):
             if stmt.expr is not None:
@@ -712,7 +712,7 @@ class CodeGenerator:
                 try:
                     sysc = syscalls[fname]
                 except KeyError:
-                    raise ChangeThisNameError("Unknown syscall: " + fname, expr)
+                    raise CompilationError("Unknown syscall: " + fname, expr)
                 # on linux, prevent clobbering
                 for arg in reversed(expr.args):
                     self.push_expr(arg, stack)
@@ -720,7 +720,7 @@ class CodeGenerator:
                     if len(expr.args) == 6:
                         self.write('push', 'ebp')
                     if len(expr.args) > 6:
-                        raise ChangeThisNameError("More than 6 arguments to linux syscall", expr)
+                        raise CompilationError("More than 6 arguments to linux syscall", expr)
                     for arg, reg in zip(expr.args, ('ebx', 'ecx', 'edx', 'esi', 'edi', 'ebp')):
                         self.write('pop', reg)
                 else:
@@ -738,9 +738,9 @@ class CodeGenerator:
                 try:
                     func = self.gfuncs[fname]
                 except KeyError:
-                    raise ChangeThisNameError("Function does not exist: " + fname, expr)
+                    raise CompilationError("Function does not exist: " + fname, expr)
                 if isinstance(func.type, Void) and push:
-                    raise ChangeThisNameError(repr(func) + " does not return a value", expr)
+                    raise CompilationError(repr(func) + " does not return a value", expr)
                 if isinstance(func, CFunction):
                     self.write('mov', 'eax,esp')
                     self.write('and', 'esp,0fffffff0h')
@@ -750,10 +750,10 @@ class CodeGenerator:
                     self.write('push', 'eax')
                 if not isinstance(func, CFunction) or not func.varargs:
                     if len(func.par_list) != len(expr.args):
-                        raise ChangeThisNameError("Incorrect number of arguments to " + repr(func), expr)
+                        raise CompilationError("Incorrect number of arguments to " + repr(func), expr)
                 else:
                     if len(expr.args) < len(func.par_list):
-                        raise ChangeThisNameError("Not enough arguments to " + repr(func), expr)
+                        raise CompilationError("Not enough arguments to " + repr(func), expr)
                 for arg in reversed(expr.args):
                     self.push_expr(arg, stack)
                 if isinstance(func, CFunction):
@@ -782,13 +782,13 @@ class CodeGenerator:
             return stack[name]
         if name in self.gvars:
             return self.gvars[name]
-        raise ChangeThisNameError("No such variable: " + name, None)
+        raise CompilationError("No such variable: " + name, None)
     def generate_externs(self):
         for ext in self.externs:
             ename = ext.name
             if ext.c is not None:
                 if ext.c != 'C' and ext.c != 'c':
-                    raise ChangeThisNameError("Invalid extern", ext)
+                    raise CompilationError("Invalid extern", ext)
                 ename = self.c_prefix + ename
             if ext.is_var:
                 self.gvars[ext.name] = GlobalStackEntry(ext.type, ename)
@@ -797,7 +797,7 @@ class CodeGenerator:
                     self.gfuncs[ext.name] = CFunction(ext)
                 else:
                     if ext.varargs:
-                        raise ChangeThisNameError("Native functions do not support varargs")
+                        raise CompilationError("Native functions do not support varargs")
                     ename = '?@' + ext.name
                     self.gfuncs[ext.name] = Function(ext.type, ext.name, ext.par_list)
             self.write('EXTERN ' + ename)
