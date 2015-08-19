@@ -21,6 +21,16 @@
                 push    ??sl0
                 call    _puts
                 mov     esp,[esp+4]
+                mov     eax,esp
+                and     esp,0fffffff0h
+                push    eax
+                mov     eax,dword[ebp+12]
+                push    eax
+                mov     eax,dword[ebp+8]
+                push    eax
+                push    ??sl1
+                call    _printf
+                mov     esp,[esp+12]
 .if0:           mov     eax,dword[ebp+8]
                 push    eax
                 mov     ebx,2
@@ -31,7 +41,7 @@
                 and     esp,0fffffff0h
                 sub     esp,8
                 push    eax
-                push    ??sl1
+                push    ??sl2
                 call    _puts
                 mov     esp,[esp+4]
                 jmp     .ifend0
@@ -45,7 +55,7 @@
                 pop     eax
                 sub     eax,ebx
                 push    eax
-                push    ??sl2
+                push    ??sl3
                 call    _printf
                 mov     esp,[esp+8]
 .ifend0:
@@ -81,7 +91,14 @@
                 call    _puts
                 mov     esp,[esp+4]
                 jmp     .while0
-.endwhile0:     mov     eax,dword[ebp-4]
+.endwhile0:     mov     eax,esp
+                and     esp,0fffffff0h
+                sub     esp,8
+                push    eax
+                push    ??sl4
+                call    _printf
+                mov     esp,[esp+4]
+                mov     eax,dword[ebp-4]
                 push    eax
                 mov     ebx,1
                 pop     eax
@@ -97,5 +114,7 @@
                 jmp     ebx
                 SECTION .data
 ??sl0:          db      `hello, world!\0`
-??sl1:          db      `We have 1 argument.\0`
-??sl2:          db      `We have %d arguments.\n\0`
+??sl1:          db      `argc: %d, argv: %x\n\0`
+??sl2:          db      `We have 1 argument.\0`
+??sl3:          db      `We have %d arguments.\n\0`
+??sl4:          db      `Hello, world!\n\0`

@@ -8,6 +8,7 @@ void main(argc, argv) {
     a = argc;
     print_int(my_int);
     puts("hello, world!\0");
+    printf("argc: %d, argv: %x\n\0", argc, argv);
     // print_int(argc);
     if (argc == 2)
         puts("We have 1 argument.\0");
@@ -19,5 +20,7 @@ void main(argc, argv) {
         // because it'd be complicated
         puts(*(argv + argc * 4));
     }
+    // test varargs some more
+    printf("Hello, world!\n\0");
     return a - 1; // exit code
 }
